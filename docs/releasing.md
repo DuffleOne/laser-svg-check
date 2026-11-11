@@ -27,6 +27,22 @@ To build the same zip locally (it lands in `dist/`):
 scripts/package.sh
 ```
 
-## Signing
+## Signing and notarising
 
-Builds are ad-hoc signed, not notarised, so on first launch macOS asks people to confirm they want to open it. Notarising needs an Apple Developer ID certificate and an app-specific password stored as repository secrets. Add a `codesign --options runtime --sign "Developer ID Application: …"` step and a `xcrun notarytool submit --wait` step before packaging if that's ever wanted.
+Releases are signed with a Developer ID certificate and notarised by Apple when these repository secrets are set:
+
+| Secret | What |
+| --- | --- |
+| `MACOS_CERTIFICATE` | The "Developer ID Application" certificate and its private key, exported as .p12, base64 |
+| `MACOS_CERTIFICATE_PASSWORD` | The password the .p12 was exported with |
+| `NOTARY_KEY` | An App Store Connect API key (.p8), base64. Developer role or higher |
+| `NOTARY_KEY_ID` | That key's ID |
+| `NOTARY_ISSUER` | The issuer ID from App Store Connect → Users and Access → Integrations |
+
+`scripts/set-signing-secrets.sh` walks through exporting the certificate and uploads all five with `gh secret set`, without printing any of them.
+
+With the secrets in place, the workflow imports the certificate into a throwaway keychain, `bundle.sh` signs with the hardened runtime, `package.sh` sends the app to Apple's notary service and staples the ticket, and the build checks Gatekeeper accepts it before publishing. The keychain and key are deleted at the end of the job.
+
+Without them, the release is signed ad hoc as before, and people have to right-click → **Open** the first time.
+
+To sign a local build the same way: `SIGN_IDENTITY="Developer ID Application" scripts/package.sh`. Add `NOTARY_KEY_PATH`, `NOTARY_KEY_ID` and `NOTARY_ISSUER` to notarise it too.

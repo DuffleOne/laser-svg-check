@@ -34,7 +34,8 @@ ditto "$SRC" "$APP.new"
 xattr -dr com.apple.quarantine "$APP.new" 2>/dev/null || true
 rm -rf "$APP"
 mv "$APP.new" "$APP"
-codesign --force --sign - "$APP" >/dev/null 2>&1 || true
+# Keep a real (Developer ID) signature; only sign ad hoc if there isn't one.
+codesign --verify "$APP" >/dev/null 2>&1 || codesign --force --sign - "$APP" >/dev/null 2>&1 || true
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" || true
 
 if [[ "${1:-}" == "--no-agent" ]]; then

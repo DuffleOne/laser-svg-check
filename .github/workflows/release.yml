@@ -26,12 +26,60 @@ jobs:
           version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
           [[ "${GITHUB_REF_NAME}" == "v$version" ]] || { echo "tag ${GITHUB_REF_NAME} but Cargo.toml says $version"; exit 1; }
 
+      # Signing and notarising switch on when the secrets are there (see
+      # docs/releasing.md); without them the build is signed ad hoc.
+      - name: Import Developer ID certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        if: env.MACOS_CERTIFICATE != ''
+        run: |
+          kc="$RUNNER_TEMP/signing.keychain-db"
+          kc_pass=$(openssl rand -base64 24)
+          security create-keychain -p "$kc_pass" "$kc"
+          security set-keychain-settings -lut 3600 "$kc"
+          security unlock-keychain -p "$kc_pass" "$kc"
+          printf %s "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$kc" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$kc_pass" "$kc" >/dev/null
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          echo "SIGN_IDENTITY=Developer ID Application" >> "$GITHUB_ENV"
+
+      - name: Set up notarisation key
+        env:
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER }}
+        if: env.NOTARY_KEY != ''
+        run: |
+          printf %s "$NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          {
+            echo "NOTARY_KEY_PATH=$RUNNER_TEMP/notary.p8"
+            echo "NOTARY_KEY_ID=$NOTARY_KEY_ID"
+            echo "NOTARY_ISSUER=$NOTARY_ISSUER"
+          } >> "$GITHUB_ENV"
+
       - name: Build and package
         id: package
         run: |
           zip=$(scripts/package.sh)
           echo "zip=$zip" >> "$GITHUB_OUTPUT"
           echo "version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Check the signature
+        run: |
+          codesign --verify --strict --verbose=2 "dist/Laser Check.app"
+          if [[ -n "${NOTARY_KEY_PATH:-}" ]]; then
+            spctl --assess --type execute --verbose=2 "dist/Laser Check.app"
+            xcrun stapler validate "dist/Laser Check.app"
+          fi
+
+      - name: Clean up signing material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/notary.p8"
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
 
       - name: Release notes
         run: |

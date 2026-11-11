@@ -3,6 +3,9 @@
 #
 #   scripts/bundle.sh              this Mac's architecture
 #   scripts/bundle.sh --universal  Apple silicon + Intel in one binary (what releases ship)
+#
+# Set SIGN_IDENTITY (e.g. "Developer ID Application") to sign for distribution;
+# otherwise the app is signed ad hoc.
 set -euo pipefail
 cd "${0:A:h}/.."
 
@@ -29,6 +32,11 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/laser-check"
 cp assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 sed "s/__VERSION__/$VERSION/g" scripts/Info.plist > "$APP/Contents/Info.plist"
-# Ad-hoc signature: enough for Apple silicon to run it. Not notarised.
-codesign --force --sign - "$APP"
+if [[ -n "${SIGN_IDENTITY:-}" ]]; then
+  # Developer ID with the hardened runtime and a timestamp, as notarisation needs.
+  codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+else
+  # Ad-hoc: enough for this Mac (and Apple silicon) to run it.
+  codesign --force --sign - "$APP"
+fi
 echo "built $APP ($VERSION)"
