@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security problem
+    url: https://github.com/DuffleOne/laser-svg-check/security/advisories/new
+    about: Please report security issues privately rather than in a public issue.

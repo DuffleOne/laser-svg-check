@@ -1,0 +1,54 @@
+name: Bug report
+description: Something checked, fixed or displayed the wrong way.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The more of this you can fill in, the quicker it gets fixed.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did Laser Check do instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      placeholder: |
+        1. Open the SVG in Laser Check
+        2. Click Fix this file
+        3. Import the fixed copy into LightBurn
+    validations:
+      required: true
+  - type: textarea
+    id: svg
+    attributes:
+      label: An SVG that shows it
+      description: |
+        Drag a file in if you can (zip it first if GitHub refuses .svg). A cut-down copy with just the problem part is perfect. Please don't share anything you aren't allowed to.
+  - type: input
+    id: version
+    attributes:
+      label: Laser Check version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac
+      placeholder: "macOS 15.2, MacBook Air M2"
+  - type: input
+    id: software
+    attributes:
+      label: Where the SVG came from and where it went
+      placeholder: "Exported from Illustrator 29, cut with LightBurn 1.7"
+  - type: textarea
+    id: log
+    attributes:
+      label: Watcher log
+      description: If it's about the background watcher, paste the end of `~/Library/Logs/laser-check.log`.
+      render: text

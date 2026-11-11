@@ -15,6 +15,12 @@ SVGs exported from Illustrator often have lines stacked on top of each other: sh
 Laser Check sits quietly in the background, looks at every SVG that lands in your Downloads (from AirDrop, iMessage, a browser, anywhere), and pops up an alert the moment it finds doubled lines. One click shows you exactly where they are; another writes a fixed copy where every line is cut once.
 
 <p align="center">
+  <a href="https://github.com/DuffleOne/laser-svg-check/releases/latest"><img src="https://img.shields.io/badge/Download_for_macOS-FF6A1A?style=for-the-badge&logo=apple&logoColor=1A0A02&labelColor=FF6A1A&color=FF6A1A" alt="Download for macOS" height="44"></a>
+  <br>
+  <sub>Free and open source · Apple silicon and Intel · macOS 13 or later</sub>
+</p>
+
+<p align="center">
   <img src="docs/images/alert.png" alt="The alert Laser Check shows when a new SVG has doubled lines" width="560">
 </p>
 
@@ -33,6 +39,7 @@ Laser Check sits quietly in the background, looks at every SVG that lands in you
 - [Troubleshooting](#troubleshooting)
 - [Uninstall](#uninstall)
 - [Building from source](#building-from-source)
+- [Contributing](#contributing)
 - [More docs](#more-docs)
 
 ## Features
@@ -181,6 +188,10 @@ scripts/install.sh --no-agent    # same, without the watcher
 ```
 
 `scripts/bundle.sh --universal` builds the same universal app the releases ship, into `dist/`.
+
+## Contributing
+
+Bug reports with an SVG attached are the most useful thing you can send, especially files it gets wrong. Code, docs and examples from other design tools are all welcome too. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## More docs
 
