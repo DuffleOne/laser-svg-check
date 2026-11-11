@@ -249,6 +249,32 @@ mod tests {
         assert!(!run_doc(fix::fixed_svg(&an)).has_problems(&s()));
     }
 
+    #[test]
+    fn invisible_copy_is_ignored_and_visible_copy_kept() {
+        // Illustrator leaves unstroked, unfilled copies that laser software
+        // never sees. The visible copy must survive.
+        let shape = "M10,10 L90,10 L90,60 L10,60 Z";
+        let an = run(&format!(
+            r##"<g><path d="{shape}" fill="none"/></g><path d="{shape}" fill="none" stroke="#000"/>"##
+        ));
+        assert!(!an.has_problems(&s()), "{} mm", an.removed_mm);
+        assert_eq!(an.doc.skipped, vec!["1 invisible shape".to_string()]);
+    }
+
+    #[test]
+    fn stroke_from_a_stylesheet_class_counts() {
+        let an = run(r#"<style>.cls-1{fill:none;stroke:#000;} .ghost{fill:none}</style>
+               <rect class="cls-1" x="10" y="10" width="50" height="30"/>
+               <rect class="cls-1" x="10" y="10" width="50" height="30"/>
+               <rect class="ghost" x="10" y="10" width="50" height="30"/>"#);
+        assert!(an.has_problems(&s()));
+        let fixed = fix::fixed_svg(&an);
+        assert!(
+            fixed.contains(r#"<rect class="cls-1""#),
+            "first visible copy kept: {fixed}"
+        );
+    }
+
     fn run_doc(src: String) -> analyze::Analysis {
         analyze::run(geom::parse(src).unwrap(), &s())
     }

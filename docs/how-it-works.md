@@ -16,7 +16,9 @@ The SVG is parsed as XML ([`src/geom.rs`](../src/geom.rs)). Laser Check walks ev
 
 Each element's `transform`, and those of every group above it, are applied, so everything ends up in the same coordinate space. Nested `<svg>` elements are positioned by their `x` and `y`.
 
-Things that don't draw are skipped: `defs`, `clipPath`, `mask`, `symbol`, `pattern`, `marker`, gradients, `style`, `title` and `metadata`. So is anything with `display="none"`. `text`, `image` and `use` elements are counted and reported but not checked; laser files from Illustrator rarely rely on them for cut lines.
+Things that don't draw are skipped: `defs`, `clipPath`, `mask`, `symbol`, `pattern`, `marker`, gradients, `style`, `title` and `metadata`. So is anything with `display="none"`.
+
+Shapes with neither a stroke nor a fill are skipped too. Illustrator sometimes leaves invisible copies of artwork behind (`fill="none"` and no stroke), and laser software like LightBurn never imports them, so they aren't cut. Treating them as real lines would make the fix keep the invisible copy and delete the one that actually gets cut. Fill and stroke are worked out the way a browser would: inherited from groups, then presentation attributes, then `<style>` class rules, then the `style` attribute. `text`, `image` and `use` elements are counted and reported but not checked; laser files from Illustrator rarely rely on them for cut lines.
 
 Units come from the root element. With `width="1000mm"` and a `viewBox` 2834.65 units wide, one unit is 0.353 mm. When the width has no unit (or `px`), Laser Check follows Illustrator and treats one unit as one point, 1/72 inch.
 

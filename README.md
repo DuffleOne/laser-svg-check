@@ -92,7 +92,7 @@ Folders are searched for SVGs, including folders inside them. Pick a file on the
 
 Every path, polygon, polyline, line, rect, circle and ellipse is read with its transforms applied and flattened into short straight pieces. Nearby pieces are compared, and two lines count as doubled where they run in the same direction (either way round), within **0.05 mm** of each other, for at least **2 mm** measured along the path.
 
-That means lines that cross, curves that only touch for a moment, and the two sides of a sharp point are all fine. Shared edges, duplicated layers, stray fragments drawn twice, and paths that double back on themselves are caught.
+That means lines that cross, curves that only touch for a moment, and the two sides of a sharp point are all fine. Shared edges, duplicated layers, stray fragments drawn twice, and paths that double back on themselves are caught. Shapes with no stroke and no fill are ignored entirely, since laser software doesn't cut them.
 
 The fix goes through the file in drawing order and keeps whichever copy comes first. Later copies have just the doubled stretch cut out, so a path that is only partly on top of another keeps the rest of its length. If nothing is left of an element, it's removed.
 

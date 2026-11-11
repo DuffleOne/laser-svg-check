@@ -2,6 +2,7 @@
 //! subpaths made of line/quad/cubic segments in root user units, with enough
 //! bookkeeping (byte range, transform) to splice a fixed version back in.
 
+use std::collections::HashMap;
 use std::ops::Range;
 use std::str::FromStr;
 
@@ -104,11 +105,22 @@ pub fn parse(src: String) -> Result<Doc> {
         doc.view = view;
         doc.mm_per_unit = mm_per_unit;
 
+        let css = parse_css(&xml);
+        let paint = paint_of(&root, Paint::default(), &css);
         let mut skipped = std::collections::BTreeMap::<String, usize>::new();
         for child in root.children().filter(|n| n.is_element()) {
-            walk(child, Affine::IDENTITY, &mut doc, &mut skipped);
+            walk(child, Affine::IDENTITY, paint, &css, &mut doc, &mut skipped);
         }
-        doc.skipped = skipped.into_iter().map(|(k, v)| format!("{v} <{k}>")).collect();
+        doc.skipped = skipped
+            .into_iter()
+            .map(|(k, v)| {
+                if v == 1 || k.starts_with('<') {
+                    format!("{v} {k}")
+                } else {
+                    format!("{v} {k}s")
+                }
+            })
+            .collect();
     }
     doc.src = src;
     Ok(doc)
@@ -152,6 +164,102 @@ fn root_units(root: &roxmltree::Node) -> (Rect, f64) {
     }
 }
 
+/// What an element would actually draw. Laser software (LightBurn included)
+/// only picks up shapes that have a stroke or a fill; a path with neither is
+/// invisible and never cut, so it mustn't count as a copy of anything.
+#[derive(Clone, Copy)]
+struct Paint {
+    fill: bool,
+    stroke: bool,
+    visible: bool,
+}
+
+impl Default for Paint {
+    // SVG defaults: black fill, no stroke.
+    fn default() -> Self {
+        Paint {
+            fill: true,
+            stroke: false,
+            visible: true,
+        }
+    }
+}
+
+impl Paint {
+    fn draws(self) -> bool {
+        self.visible && (self.fill || self.stroke)
+    }
+
+    fn set(&mut self, key: &str, value: &str) {
+        let v = value.trim();
+        if v == "inherit" || v.is_empty() {
+            return;
+        }
+        match key.trim() {
+            "fill" => self.fill = v != "none" && v != "transparent",
+            "stroke" => self.stroke = v != "none" && v != "transparent",
+            "visibility" => self.visible = v == "visible",
+            "opacity" if v.parse::<f64>().is_ok_and(|o| o <= 0.0) => self.visible = false,
+            _ => {}
+        }
+    }
+}
+
+/// `<style>` rules, keyed by selector: `.cls-1` or a tag name. Enough for
+/// what Illustrator and Inkscape write; anything fancier is ignored.
+type Css = HashMap<String, Vec<(String, String)>>;
+
+fn parse_css(xml: &roxmltree::Document) -> Css {
+    let mut css = Css::new();
+    for style in xml.descendants().filter(|n| n.tag_name().name() == "style") {
+        let mut text: String = style.children().filter_map(|c| c.text()).collect();
+        while let Some(a) = text.find("/*") {
+            let b = text[a..].find("*/").map(|b| a + b + 2).unwrap_or(text.len());
+            text.replace_range(a..b, "");
+        }
+        for rule in text.split('}') {
+            let Some((sels, body)) = rule.split_once('{') else {
+                continue;
+            };
+            let decls: Vec<(String, String)> = body
+                .split(';')
+                .filter_map(|d| d.split_once(':'))
+                .map(|(k, v)| (k.trim().to_string(), v.trim().to_string()))
+                .collect();
+            for sel in sels.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+                css.entry(sel.to_string())
+                    .or_default()
+                    .extend(decls.iter().cloned());
+            }
+        }
+    }
+    css
+}
+
+/// Paint for `node`, given its parent's. Precedence low to high: inherited,
+/// presentation attributes, stylesheet rules, the `style` attribute.
+fn paint_of(node: &roxmltree::Node, parent: Paint, css: &Css) -> Paint {
+    let mut p = parent;
+    for key in ["fill", "stroke", "visibility", "opacity"] {
+        if let Some(v) = node.attribute(key) {
+            p.set(key, v);
+        }
+    }
+    let mut rules = vec![node.tag_name().name().to_string()];
+    if let Some(classes) = node.attribute("class") {
+        rules.extend(classes.split_whitespace().map(|c| format!(".{c}")));
+    }
+    for (k, v) in rules.iter().filter_map(|r| css.get(r)).flatten() {
+        p.set(k, v);
+    }
+    if let Some(style) = node.attribute("style") {
+        for (k, v) in style.split(';').filter_map(|d| d.split_once(':')) {
+            p.set(k, v);
+        }
+    }
+    p
+}
+
 fn hidden(node: &roxmltree::Node) -> bool {
     node.attribute("display") == Some("none")
         || node
@@ -176,6 +284,8 @@ fn num(node: &roxmltree::Node, name: &str) -> f64 {
 fn walk(
     node: roxmltree::Node,
     parent: Affine,
+    parent_paint: Paint,
+    css: &Css,
     doc: &mut Doc,
     skipped: &mut std::collections::BTreeMap<String, usize>,
 ) {
@@ -183,18 +293,19 @@ fn walk(
     if NON_RENDERED.contains(&name) || hidden(&node) {
         return;
     }
+    let paint = paint_of(&node, parent_paint, css);
     let mut ctm = parent * transform_of(&node);
     let local: Option<BezPath> = match name {
         "g" | "a" | "switch" => {
             for child in node.children().filter(|n| n.is_element()) {
-                walk(child, ctm, doc, skipped);
+                walk(child, ctm, paint, css, doc, skipped);
             }
             return;
         }
         "svg" => {
             ctm *= Affine::translate((num(&node, "x"), num(&node, "y")));
             for child in node.children().filter(|n| n.is_element()) {
-                walk(child, ctm, doc, skipped);
+                walk(child, ctm, paint, css, doc, skipped);
             }
             return;
         }
@@ -253,11 +364,15 @@ fn walk(
             p
         }),
         other => {
-            *skipped.entry(other.to_string()).or_default() += 1;
+            *skipped.entry(format!("<{other}>")).or_default() += 1;
             return;
         }
     };
     let Some(local) = local else { return };
+    if !paint.draws() {
+        *skipped.entry("invisible shape".into()).or_default() += 1;
+        return;
+    }
 
     let keep_attrs = node
         .attributes()

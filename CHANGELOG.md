@@ -8,6 +8,7 @@ First release.
 - Alert with **Fix it**, **Show me** and **Fix and show me**.
 - Review window: drop in SVGs or folders, see doubled lines in red, step through problem areas, fix one file or all of them.
 - Fixes keep the first copy of each line, trim the rest, and save `name-fixed.svg` next to the original.
+- Ignores invisible shapes (no stroke and no fill), which laser software doesn't cut.
 - Remembers files by content hash: clean files are skipped, warnings repeat after 3 days.
 - `check`, `fix`, `verify` and `preview` from the command line.
 - Universal build for Apple silicon and Intel, macOS 13 or later.
