@@ -17,6 +17,7 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --release --all-targets -- -D warnings
       - run: cargo test --release
+      - run: cargo build --release
       - name: Examples behave
         run: |
           ./target/release/laser-check check examples/clean.svg
