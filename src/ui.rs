@@ -99,50 +99,89 @@ fn file_url_to_path(u: &str) -> Option<PathBuf> {
 
 // ---------------------------------------------------------------- colours
 
+/// Design tokens (see design/README.md). Dark is the designed theme; light
+/// keeps the old values until it gets its own pass.
 #[derive(Clone, Copy)]
 struct Theme {
+    /// Window background.
     bg: Hsla,
+    /// Behind the sheet preview.
+    canvas: Hsla,
+    /// Sidebar, inspector, cards.
     panel: Hsla,
+    /// Selected row, secondary buttons.
+    raised: Hsla,
+    /// Hover, active segment.
+    hover: Hsla,
+    /// 1px dividers.
+    border: Hsla,
+    /// Outlines on cards and the selected row.
+    outline: Hsla,
     text: Hsla,
     muted: Hsla,
-    border: Hsla,
-    red: Hsla,
-    red_soft: Hsla,
-    green: Hsla,
-    button: Hsla,
-    button_hover: Hsla,
+    /// Section labels, hints.
+    dim: Hsla,
+    /// Primary actions and the selected area.
+    laser: Hsla,
+    /// Text on a laser-coloured button.
+    on_laser: Hsla,
+    /// Doubled lines, problem status.
+    double: Hsla,
+    /// Problem text on dark.
+    double_text: Hsla,
+    /// Numbers inside area markers.
+    marker_text: Hsla,
+    /// Clean or fixed.
+    ok: Hsla,
+}
+
+fn hex(v: u32) -> Hsla {
+    rgb(v).into()
+}
+
+/// `#RRGGBBAA`, as the design file writes translucent colours.
+fn hexa(v: u32) -> Hsla {
+    gpui::rgba(v).into()
 }
 
 fn theme(window: &Window) -> Theme {
-    let dark = matches!(
-        window.appearance(),
-        WindowAppearance::Dark | WindowAppearance::VibrantDark
-    );
-    if dark {
+    if is_dark(window) {
         Theme {
-            bg: rgb(0x1e1e20).into(),
-            panel: rgb(0x26262a).into(),
-            text: rgb(0xececf0).into(),
-            muted: rgb(0x9a9aa2).into(),
-            border: rgb(0x3a3a40).into(),
-            red: rgb(0xff453a).into(),
-            red_soft: rgb(0x4a1f1f).into(),
-            green: rgb(0x32d74b).into(),
-            button: rgb(0x3a3a40).into(),
-            button_hover: rgb(0x4a4a52).into(),
+            bg: hex(0x0B0D14),
+            canvas: hex(0x10131D),
+            panel: hex(0x141826),
+            raised: hex(0x1C2132),
+            hover: hex(0x242A3E),
+            border: hex(0x232838),
+            outline: hex(0x2E3448),
+            text: hex(0xECEEF4),
+            muted: hex(0x8A91A8),
+            dim: hex(0x5A6280),
+            laser: hex(0xFF6A1A),
+            on_laser: hex(0x1A0A02),
+            double: hex(0xFF4858),
+            double_text: hex(0xFF8A94),
+            marker_text: hex(0xFFB3BA),
+            ok: hex(0x5BD6A0),
         }
     } else {
         Theme {
-            bg: rgb(0xffffff).into(),
-            panel: rgb(0xf4f4f6).into(),
-            text: rgb(0x1d1d1f).into(),
-            muted: rgb(0x6e6e73).into(),
-            border: rgb(0xdcdce0).into(),
-            red: rgb(0xd70015).into(),
-            red_soft: rgb(0xffe5e5).into(),
-            green: rgb(0x248a3d).into(),
-            button: rgb(0xe8e8ec).into(),
-            button_hover: rgb(0xdadade).into(),
+            bg: hex(0xffffff),
+            canvas: hex(0xffffff),
+            panel: hex(0xf4f4f6),
+            raised: hex(0xe8e8ec),
+            hover: hex(0xdadade),
+            border: hex(0xdcdce0),
+            outline: hex(0xdcdce0),
+            text: hex(0x1d1d1f),
+            muted: hex(0x6e6e73),
+            dim: hex(0x8e8e93),
+            laser: hex(0xd70015),
+            on_laser: hex(0xffffff),
+            double: hex(0xd70015),
+            double_text: hex(0xd70015),
+            marker_text: hex(0xd70015),
+            ok: hex(0x248a3d),
         }
     }
 }
@@ -161,19 +200,19 @@ fn button(id: impl Into<gpui::ElementId>, label: impl Into<SharedString>, t: The
         .px_3()
         .py_1()
         .rounded_md()
-        .bg(t.button)
+        .bg(t.raised)
         .text_color(t.text)
         .text_sm()
         .cursor_pointer()
-        .hover(move |s| s.bg(t.button_hover))
+        .hover(move |s| s.bg(t.hover))
         .child(label.into())
 }
 
 fn primary(id: impl Into<gpui::ElementId>, label: impl Into<SharedString>, t: Theme) -> Stateful<Div> {
-    let hover = t.red.opacity(0.85);
+    let hover = t.laser.opacity(0.85);
     button(id, label, t)
-        .bg(t.red)
-        .text_color(gpui::white())
+        .bg(t.laser)
+        .text_color(t.on_laser)
         .font_weight(FontWeight::SEMIBOLD)
         .hover(move |s| s.bg(hover))
 }
@@ -528,7 +567,7 @@ impl Render for Review {
                     .child(
                         div()
                             .text_sm()
-                            .text_color(if n_bad > 0 { t.red } else { t.muted })
+                            .text_color(if n_bad > 0 { t.double_text } else { t.muted })
                             .child(summary),
                     ),
             )
@@ -600,8 +639,8 @@ impl Render for Review {
                         .border_b_1()
                         .border_color(t.border)
                         .cursor_pointer()
-                        .when(selected, |d| d.bg(t.button))
-                        .hover(move |d| d.bg(t.button_hover))
+                        .when(selected, |d| d.bg(t.raised))
+                        .hover(move |d| d.bg(t.hover))
                         .on_click(cx.listener(move |this, _, _, cx| this.select(ix, cx)))
                         .child(
                             div()
@@ -625,7 +664,7 @@ impl Render for Review {
             .bg(t.bg)
             .text_color(t.text)
             .on_drop(cx.listener(|this, paths: &ExternalPaths, _, cx| this.add(paths.paths().to_vec(), cx)))
-            .drag_over::<ExternalPaths>(move |style, _, _, _| style.bg(t.red_soft))
+            .drag_over::<ExternalPaths>(move |style, _, _, _| style.bg(t.raised))
             .on_action(cx.listener(|_, _: &CloseWindow, window, _| window.remove_window()))
             .child(header)
             .child(body)
@@ -634,15 +673,15 @@ impl Render for Review {
 
 fn status_line(f: &Item, s: &Settings, t: Theme) -> (String, Hsla) {
     match (&f.state, &f.fixed) {
-        (_, Some(Ok(out))) => (format!("Fixed → {}", name(out)), t.green),
-        (_, Some(Err(e))) => (format!("Fix failed: {e}"), t.red),
+        (_, Some(Ok(out))) => (format!("Fixed → {}", name(out)), t.ok),
+        (_, Some(Err(e))) => (format!("Fix failed: {e}"), t.double_text),
         (State::Checking, _) => ("Checking…".into(), t.muted),
-        (State::Failed(e), _) => (format!("Couldn't read: {e}"), t.red),
+        (State::Failed(e), _) => (format!("Couldn't read: {e}"), t.double_text),
         (State::Ready(a), _) if a.has_problems(s) => (
             format!("{} cut twice, {}", metres(a.removed_mm), areas(a.areas.len())),
-            t.red,
+            t.double_text,
         ),
-        (State::Ready(_), _) => ("No double lines".into(), t.green),
+        (State::Ready(_), _) => ("No double lines".into(), t.ok),
     }
 }
 
@@ -680,7 +719,7 @@ impl Review {
                 return pane
                     .items_center()
                     .justify_center()
-                    .text_color(t.red)
+                    .text_color(t.double_text)
                     .child(format!("Couldn't read this file: {e}"));
             }
         };
@@ -910,7 +949,7 @@ impl Render for Alert {
                     .child(
                         div()
                             .flex_shrink_0()
-                            .text_color(if done { t.green } else { t.red })
+                            .text_color(if done { t.ok } else { t.double_text })
                             .child(right),
                     )
             }));
@@ -967,7 +1006,7 @@ impl Render for Alert {
                 )
         };
 
-        let accent = if done { t.green } else { t.red };
+        let accent = if done { t.ok } else { t.double_text };
         div()
             .size_full()
             .flex()
