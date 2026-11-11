@@ -60,7 +60,9 @@ fn main() -> Result<()> {
                 .iter()
                 .position(|a| a == "--area")
                 .and_then(|i| args.get(i + 1)?.parse::<usize>().ok());
-            let focus = area.and_then(|i| an.areas.get(i.saturating_sub(1))).copied();
+            let focus = area
+                .and_then(|i| an.areas.get(i.saturating_sub(1)))
+                .map(|a| a.rect);
             let region = match focus {
                 Some(r) => r.inflate(r.width().max(20.0), r.height().max(20.0)),
                 None => an.doc.view,
@@ -272,6 +274,36 @@ mod tests {
         assert!(
             fixed.contains(r#"<rect class="cls-1""#),
             "first visible copy kept: {fixed}"
+        );
+    }
+
+    #[test]
+    fn areas_are_in_reading_order_and_add_up() {
+        // Two doubled squares, the lower one on the left.
+        let sq = |x: f64, y: f64| {
+            format!(r##"<rect x="{x}" y="{y}" width="20" height="20" fill="none" stroke="#000"/>"##)
+        };
+        let body = [
+            sq(150.0, 20.0),
+            sq(150.0, 20.0),
+            sq(20.0, 150.0),
+            sq(20.0, 150.0),
+            sq(150.0, 150.0),
+            sq(150.0, 150.0),
+        ]
+        .concat();
+        let an = run(&body);
+        assert_eq!(an.areas.len(), 3);
+        let c: Vec<_> = an.areas.iter().map(|a| a.rect.center()).collect();
+        assert!(c[0].y < c[1].y, "top first");
+        assert!(c[1].x < c[2].x, "then left to right");
+        let sum: f64 = an.areas.iter().map(|a| a.mm).sum();
+        assert!((sum - an.removed_mm).abs() < 1e-6, "{sum} vs {}", an.removed_mm);
+        // Each square is 80 units round, about 28 mm.
+        assert!(
+            an.areas.iter().all(|a| (a.mm - 80.0 * 25.4 / 72.0).abs() < 0.5),
+            "{:?}",
+            an.areas
         );
     }
 

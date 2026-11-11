@@ -17,7 +17,7 @@ pub struct Analysis {
     pub removals: Vec<Vec<(f64, f64)>>,
     pub removed_mm: f64,
     /// Bounding boxes of clusters of doubled lines, for "next problem".
-    pub areas: Vec<Rect>,
+    pub areas: Vec<Area>,
 }
 
 impl Analysis {
@@ -72,6 +72,15 @@ impl Flat {
         };
         self.pts[i - 1].lerp(self.pts[i], f)
     }
+}
+
+/// A cluster of doubled lines, numbered in reading order in the UI.
+#[derive(Clone, Copy, Debug)]
+pub struct Area {
+    pub rect: Rect,
+    /// How much line the fix removes inside this area. The areas add up to
+    /// `removed_mm`.
+    pub mm: f64,
 }
 
 #[derive(Clone, Copy)]
@@ -239,7 +248,36 @@ pub fn run(doc: Doc, s: &Settings) -> Analysis {
         removals[si] = drop;
     }
 
-    let areas = cluster(&patches, &flat, 1.0 / doc.mm_per_unit);
+    let (rects, group) = cluster(&patches, &flat, 1.0 / doc.mm_per_unit);
+    // Each removed stretch lies inside one of the doubled patches on its
+    // segment; credit its length to that patch's area.
+    let mut mm = vec![0.0; rects.len()];
+    // Patches were pushed segment by segment, so each segment's are contiguous.
+    let mut by_seg: HashMap<usize, std::ops::Range<usize>> = HashMap::new();
+    for (i, p) in patches.iter().enumerate() {
+        by_seg
+            .entry(p.seg)
+            .and_modify(|r| r.end = i + 1)
+            .or_insert(i..i + 1);
+    }
+    for (si, drops) in removals.iter().enumerate() {
+        let Some(range) = by_seg.get(&si) else { continue };
+        for &(lo, hi) in drops {
+            let mid = (lo + hi) / 2.0;
+            let owner = range
+                .clone()
+                .min_by(|&a, &b| dist(&patches[a], mid).total_cmp(&dist(&patches[b], mid)))
+                .map(|i| group[i]);
+            if let Some(g) = owner {
+                mm[g] += (hi - lo) * doc.mm_per_unit;
+            }
+        }
+    }
+    let areas = rects
+        .into_iter()
+        .zip(mm)
+        .map(|(rect, mm)| Area { rect, mm })
+        .collect();
     Analysis {
         removed_mm: removed * doc.mm_per_unit,
         doc,
@@ -344,7 +382,14 @@ fn merge(mut v: Vec<(f64, f64)>, gap: f64) -> Vec<(f64, f64)> {
     out
 }
 
-fn cluster(patches: &[Patch], flat: &[Flat], pad: f64) -> Vec<Rect> {
+/// How far arc position `a` is from patch `p` (0 inside it).
+fn dist(p: &Patch, a: f64) -> f64 {
+    (p.a0 - a).max(a - p.a1).max(0.0)
+}
+
+/// Groups patches whose boxes touch into areas. Returns the areas, sorted top
+/// to bottom then left to right, and the area index of every patch.
+fn cluster(patches: &[Patch], flat: &[Flat], pad: f64) -> (Vec<Rect>, Vec<usize>) {
     let boxes: Vec<Rect> = patches
         .iter()
         .map(|p| flat[p.seg].bbox(p.a0, p.a1).inflate(pad, pad))
@@ -377,18 +422,29 @@ fn cluster(patches: &[Patch], flat: &[Flat], pad: f64) -> Vec<Rect> {
             }
         }
     }
-    let mut groups: HashMap<usize, Rect> = HashMap::new();
+    let mut index_of_root: HashMap<usize, usize> = HashMap::new();
+    let mut rects: Vec<Rect> = vec![];
+    let mut group = vec![0; boxes.len()];
     for (i, b) in boxes.iter().enumerate() {
         let r = find(&mut parent, i);
-        groups.entry(r).and_modify(|g| *g = g.union(*b)).or_insert(*b);
+        let g = *index_of_root.entry(r).or_insert_with(|| {
+            rects.push(*b);
+            rects.len() - 1
+        });
+        rects[g] = rects[g].union(*b);
+        group[i] = g;
     }
-    let mut out: Vec<Rect> = groups.into_values().map(|b| b.inflate(-pad, -pad)).collect();
-    // Reading order: rows of roughly 50 units, then left to right.
-    out.sort_by(|a, b| {
-        (a.y0 / 50.0)
-            .floor()
-            .total_cmp(&(b.y0 / 50.0).floor())
-            .then(a.x0.total_cmp(&b.x0))
+    let rects: Vec<Rect> = rects.into_iter().map(|b| b.inflate(-pad, -pad)).collect();
+    // Reading order: top to bottom by centre, then left to right.
+    let mut order: Vec<usize> = (0..rects.len()).collect();
+    order.sort_by(|&a, &b| {
+        let (ca, cb) = (rects[a].center(), rects[b].center());
+        ca.y.total_cmp(&cb.y).then(ca.x.total_cmp(&cb.x))
     });
-    out
+    let mut rank = vec![0; rects.len()];
+    for (new, &old) in order.iter().enumerate() {
+        rank[old] = new;
+    }
+    let sorted = order.iter().map(|&i| rects[i]).collect();
+    (sorted, group.into_iter().map(|g| rank[g]).collect())
 }

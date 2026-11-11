@@ -463,7 +463,7 @@ impl Review {
             return;
         }
         self.rendering = true;
-        let focus = key.area.and_then(|i| an.areas.get(i)).copied();
+        let focus = key.area.and_then(|i| an.areas.get(i)).map(|a| a.rect);
         let region = match focus {
             Some(r) => zoom_region(r, an.doc.mm_per_unit),
             None => an.doc.view,

@@ -45,7 +45,11 @@ fn stroke(pm: &mut Pixmap, path: &tiny_skia::Path, c: Color, width: f32, ts: Tra
     let mut paint = Paint::default();
     paint.set_color(c);
     paint.anti_alias = true;
-    let st = Stroke { width, line_cap: LineCap::Round, ..Default::default() };
+    let st = Stroke {
+        width,
+        line_cap: LineCap::Round,
+        ..Default::default()
+    };
     pm.stroke_path(path, &paint, &st, ts, None);
 }
 
