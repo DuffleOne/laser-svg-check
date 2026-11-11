@@ -152,7 +152,11 @@ impl Review {
 
     fn add(&mut self, paths: Vec<PathBuf>, cx: &mut Context<Self>) {
         let s = self.settings;
-        let mut paths = crate::collect_svgs(paths);
+        // Absolute paths, so the folder line and fixed-copy matching work.
+        let mut paths: Vec<PathBuf> = crate::collect_svgs(paths)
+            .into_iter()
+            .map(|p| p.canonicalize().unwrap_or(p))
+            .collect();
         // Originals first, so a name-fixed.svg can find its original.
         paths.sort_by_key(|p| is_fixed_name(p));
         for path in paths {
@@ -983,13 +987,21 @@ impl Review {
         if !after && bad {
             // Markers sit over the image at the same scale it was drawn at.
             let k = w as f64 / region.width();
+            let zoomed = self.zoom.is_some();
             let to_px = |p: kurbo::Point| ((p.x - region.x0) * k, (p.y - region.y0) * k);
             let mut markers: Vec<(usize, f64, f64)> = original
                 .areas
                 .iter()
                 .enumerate()
                 .map(|(i, a)| {
-                    let (x, y) = to_px(a.rect.center());
+                    // Whole sheet: on the area. Zoomed in: just off its top-left
+                    // corner, so the marker doesn't hide the line it points at.
+                    let (x, y) = if zoomed {
+                        let (x, y) = to_px(a.rect.origin());
+                        (x - 16.0, y - 16.0)
+                    } else {
+                        to_px(a.rect.center())
+                    };
                     (i, x, y)
                 })
                 .filter(|&(_, x, y)| x >= 0.0 && y >= 0.0 && x <= w as f64 && y <= h as f64)
@@ -999,7 +1011,13 @@ impl Review {
             for (i, x, y) in markers {
                 pane = pane.child(self.marker(i, x as f32, y as f32, t, cx));
             }
-            if self.zoom.is_none() {
+            // Only nag when the doubled lines really are too small to make out.
+            let largest = original
+                .areas
+                .iter()
+                .map(|a| a.rect.width().max(a.rect.height()) * k)
+                .fold(0.0, f64::max);
+            if largest < 24.0 {
                 pane = pane.child(banner(
                     "scan-search",
                     "Too small to see at this zoom. Click a number, or press ↓ to step through.".into(),

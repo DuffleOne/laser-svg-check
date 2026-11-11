@@ -38,7 +38,10 @@ src/
   fix.rs       rebuilds touched elements and splices them into the original text
   verify.rs    checks a fixed file still covers every original line
   render.rs    tiny-skia preview with the red highlights
-  ui.rs        gpui windows: review and alert
+  ui.rs        app setup, bundled icons and font, shared types
+  ui/theme.rs  design tokens, icons, buttons, number formatting
+  ui/review.rs review window: sidebar, preview with area markers, inspector
+  ui/alert.rs  the watcher's alert, including fixing and verifying
   watch.rs     FSEvents watcher, and the short-lived `scan` process
   store.rs     content-hash history (seen.json)
   config.rs    config.toml
@@ -48,6 +51,7 @@ scripts/
   install-app.sh  install a built app + login agent; ships in the release zip
   Info.plist      app bundle template
   make-icon.swift renders assets/icon.svg into assets/AppIcon.icns
+assets/        app icon, Lucide icons (icons/) and JetBrains Mono (fonts/)
 examples/      synthetic SVGs used in the docs and CI
 docs/          these docs and the README images
 ```
@@ -73,10 +77,12 @@ for f in some/folder/*-fixed.svg; do laser-check verify "${f%-fixed.svg}.svg" "$
 
 ## gpui notes
 
-- **Opening a window from a click handler deadlocks.** Making the new window key calls back into the window whose handler is still running. Wrap it in `cx.defer`. See `Alert::show`.
+- **Opening a window from a click handler deadlocks.** Making the new window key calls back into the window whose handler is still running. Wrap it in `cx.defer`. See `Alert::review`.
 - **Closing the last window quits the app**, by design. So when swapping one window for another, open the new one before removing the old.
 - The preview is drawn with tiny-skia on a background thread and shown as a `RenderImage`. gpui expects BGRA, so the channels are swapped. Old images are released with `cx.drop_image`.
-- The alert uses `WindowKind::PopUp`, which floats above other apps' windows.
+- The alert uses `WindowKind::PopUp`, which floats above other apps' windows. It has no title bar, so macOS draws its corners and shadow; a `canvas` inside the card measures it and resizes the window to fit.
+- A window on a Space you can't see stops redrawing, so screenshots and clicks there look stale. Test from a normal desktop Space.
+- Colours come from the tokens in `ui/theme.rs`, which follow the design brief. Only dark mode has been designed; light mode keeps the older values.
 
 ## The icon
 

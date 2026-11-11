@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.svg" alt="Laser Check" width="100%">
+  <img src="docs/images/banner.png" alt="Laser Check: catches the lines your laser would cut twice, and fixes them before they reach the cutter." width="100%">
 </p>
 
 <p align="center">
@@ -38,8 +38,9 @@ Laser Check sits quietly in the background, looks at every SVG that lands in you
 ## Features
 
 - **Watches folders for you.** New SVGs in `~/Downloads` (or any folders you choose) are checked within a couple of seconds of arriving. Files still being written are left alone until they settle.
-- **An alert you won't miss.** A floating window with a sound, listing each file and how much line would be cut twice. Fix it, see it, or both.
-- **See exactly what's wrong.** Doubled lines are drawn in red over the whole sheet. Step through each problem area with ◀ ▶.
+- **An alert you won't miss.** A floating window with a sound, listing each file, how many areas and how much line would be cut twice. Fix them there and then, or review first.
+- **Checked fixes.** After fixing, every fixed copy is checked against its original: no line may go missing and nothing may still be doubled. Only then is it marked **verified**.
+- **See exactly what's wrong.** Every problem area gets a numbered marker on the sheet, with its length in an inspector alongside. Click a number or press <kbd>↓</kbd> to zoom in on it, and flip between **Original** and **After fix**.
 - **Safe fixes.** The fix keeps the first copy of every line and trims the rest, joining paths back up where it can. It writes `name-fixed.svg` next to the original and never touches the original. Everything it didn't need to change, from layers and ids to colours, text and images, is copied byte for byte.
 - **Review a batch.** Open the app and drop in SVGs, a selection, or whole folders. Fix them one at a time or all at once.
 - **Doesn't nag.** Files are remembered by content hash. Clean files are never checked again; a file you've already been warned about stays quiet for 3 days. The app's own fixed copies are never flagged.
@@ -69,10 +70,11 @@ See [Building from source](#building-from-source).
 
 | Button | What it does |
 | --- | --- |
-| **Fix it** | Writes `name-fixed.svg` next to each file. The alert changes to show where they went. |
-| **Show me** | Opens the review window with the doubled lines in red. |
-| **Fix and show me** | Both. The review window then shows which fixed copies were written. |
-| **Ignore** | Closes the alert. You won't hear about this exact file again for 3 days. |
+| **Fix it** / **Fix both** / **Fix all** | Writes `name-fixed.svg` next to each file, then checks each fixed copy. The alert turns green and lists them, marked **verified** once they pass. |
+| **Review** | Opens the review window so you can see the problems first. |
+| **Ignore for 3 days** | Closes the alert. You won't hear about these exact files again until then (the number follows `rewarn_days`). |
+
+After fixing, **Show me** opens the review window and **Show in Finder** points at the fixed copies.
 
 ### The review window
 
@@ -82,7 +84,14 @@ Open **Laser Check** from Applications (or Spotlight) to get the review window. 
 - click **Add files…** (or press <kbd>⌘</kbd><kbd>O</kbd>), or
 - drop files onto the app icon in the Dock, or choose **Open With → Laser Check** in Finder.
 
-Folders are searched for SVGs, including folders inside them. Pick a file on the left to see it. **Whole sheet** shows everything, and ◀ ▶ zoom to each cluster of doubled lines with an orange box around it. **Fix it** fixes the file you're looking at; **Fix all** does every file with problems. **Show in Finder** reveals the fixed copy once there is one.
+Folders are searched for SVGs, including folders inside them. The sidebar sorts files into **To fix**, **Fixed** and **Clean**. A `name-fixed.svg` that sits next to its original is shown under it rather than as a file of its own.
+
+Pick a file to see the whole sheet with a numbered marker on every problem area. Doubled lines are usually far too small to see at that size, so:
+
+- click a number to zoom to that area, or use <kbd>↑</kbd> <kbd>↓</kbd> to step through them,
+- the inspector on the right lists every area with its length, and shows the selected one up close,
+- **Original** / **After fix** switches between the file as it is and the fixed copy,
+- **Fix this file** (<kbd>⌘</kbd><kbd>↩</kbd>) fixes the file you're looking at, and **Fix all** does every file in **To fix**.
 
 ## How it decides
 
@@ -144,7 +153,7 @@ If the log says it can't read the folder, open **System Settings → Privacy & S
 
 **macOS asks about Downloads again after an update.** macOS ties that permission to the exact build, so a new version asks once more.
 
-**A file is flagged but I can't see anything wrong.** Click **Show me** and step through the areas. Doubled lines are often tiny fragments a few millimetres long, sitting on top of each other in an otherwise empty part of the sheet.
+**A file is flagged but I can't see anything wrong.** Open it in the review window and step through the areas with <kbd>↓</kbd>. Doubled lines are often tiny fragments a few millimetres long, sitting on top of each other in an otherwise empty part of the sheet.
 
 **I want it stricter or looser.** Lower `min_overlap_mm` to catch shorter doubled stretches, or raise `tolerance_mm` if your copies are offset slightly rather than exactly on top of each other.
 
@@ -182,4 +191,4 @@ scripts/install.sh --no-agent    # same, without the watcher
 
 ## Licence
 
-[MIT](LICENSE). The UI is built with [gpui](https://gpui.rs), the framework behind the Zed editor.
+[MIT](LICENSE). The UI is built with [gpui](https://gpui.rs), the framework behind the Zed editor. Icons are from [Lucide](https://lucide.dev) (ISC), and numbers are set in [JetBrains Mono](https://www.jetbrains.com/lp/mono/), bundled under the [SIL Open Font Licence](assets/fonts/OFL.txt).
