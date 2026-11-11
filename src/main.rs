@@ -153,7 +153,7 @@ fn cli_check(paths: Vec<PathBuf>, s: Settings, fix: bool) -> Result<()> {
                 println!(
                     "{}: {} cut twice, in {}",
                     path.display(),
-                    ui::metres(an.removed_mm),
+                    ui::length(an.removed_mm),
                     ui::areas(an.areas.len())
                 );
                 if fix {
