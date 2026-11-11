@@ -39,7 +39,11 @@ pub fn run() -> Result<()> {
     }
 
     loop {
-        let wait = if pending.is_empty() { Duration::from_secs(3600) } else { Duration::from_millis(400) };
+        let wait = if pending.is_empty() {
+            Duration::from_secs(3600)
+        } else {
+            Duration::from_millis(400)
+        };
         match rx.recv_timeout(wait) {
             Ok(p) => {
                 if crate::is_svg(&p) {
@@ -56,7 +60,9 @@ pub fn run() -> Result<()> {
             if t.elapsed() < SETTLE {
                 return true;
             }
-            let Ok(meta) = std::fs::metadata(p) else { return false };
+            let Ok(meta) = std::fs::metadata(p) else {
+                return false;
+            };
             if meta.len() != *size {
                 // Still growing; look again later.
                 *t = Instant::now();
@@ -70,21 +76,30 @@ pub fn run() -> Result<()> {
             continue;
         }
 
-        // Re-read the config each time so threshold tweaks apply without a restart.
-        let cfg = Config::load();
-        let mut seen = Seen::load();
-        let mut alert = vec![];
-        for p in ready {
-            if let Some(bad) = check(&p, &cfg, &mut seen) {
-                alert.push(bad);
-            }
-        }
-        seen.save();
-        if !alert.is_empty() {
-            spawn_alert(&alert);
+        // Parsing a big drawing takes tens of MB that malloc then keeps, so
+        // each batch is checked in a short-lived child and the watcher stays
+        // at a few MB.
+        let exe = std::env::current_exe().unwrap_or_default();
+        match std::process::Command::new(exe).arg("scan").args(&ready).status() {
+            Ok(st) if !st.success() => eprintln!("scan exited with {st}"),
+            Err(e) => eprintln!("couldn't run scan: {e}"),
+            _ => {}
         }
     }
     Ok(())
+}
+
+/// Checks a batch of new files and pops one alert for the ones with problems.
+/// Runs as its own process (`laser-check scan ...`), started by the watcher.
+pub fn scan(paths: &[PathBuf]) {
+    // Re-read the config each time so threshold tweaks apply without a restart.
+    let cfg = Config::load();
+    let mut seen = Seen::load();
+    let alert: Vec<PathBuf> = paths.iter().filter_map(|p| check(p, &cfg, &mut seen)).collect();
+    seen.save();
+    if !alert.is_empty() {
+        spawn_alert(&alert);
+    }
 }
 
 fn check(p: &Path, cfg: &Config, seen: &mut Seen) -> Option<PathBuf> {
@@ -103,7 +118,9 @@ fn check(p: &Path, cfg: &Config, seen: &mut Seen) -> Option<PathBuf> {
 }
 
 fn recent_svgs(dir: &Path, within: Duration) -> Vec<PathBuf> {
-    let Ok(rd) = std::fs::read_dir(dir) else { return vec![] };
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return vec![];
+    };
     let cutoff = SystemTime::now() - within;
     rd.flatten()
         .map(|e| e.path())
@@ -122,7 +139,9 @@ fn recent_svgs(dir: &Path, within: Duration) -> Vec<PathBuf> {
 /// app bundle so the window process isn't a child of this one.
 pub fn spawn_alert(paths: &[PathBuf]) {
     let exe = std::env::current_exe().unwrap_or_default();
-    let bundle = exe.ancestors().find(|a| a.extension().is_some_and(|e| e == "app"));
+    let bundle = exe
+        .ancestors()
+        .find(|a| a.extension().is_some_and(|e| e == "app"));
     let res = match bundle {
         Some(app) => std::process::Command::new("/usr/bin/open")
             .arg("-n")

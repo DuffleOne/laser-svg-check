@@ -28,7 +28,10 @@ pub fn fixed_svg(an: &Analysis) -> String {
     let mut out = String::with_capacity(src.len());
     let mut at = 0;
     for el in &doc.elements {
-        let touched = el.subpaths.iter().any(|sp| sp.segs.clone().any(|i| !an.removals[i].is_empty()));
+        let touched = el
+            .subpaths
+            .iter()
+            .any(|sp| sp.segs.clone().any(|i| !an.removals[i].is_empty()));
         if !touched {
             continue;
         }
@@ -103,8 +106,17 @@ fn kept_chains(an: &Analysis, segs: std::ops::Range<usize>, closed: bool) -> Vec
         }
         for (a0, a1) in keep {
             let (t0, t1) = (f.t_at(a0), f.t_at(a1));
-            let piece = if t0 == 0.0 && t1 == 1.0 { seg } else { seg.subsegment(t0..t1) };
-            frags.push(Frag { i, seg: piece, from_start: a0 == 0.0, to_end: a1 >= len });
+            let piece = if t0 == 0.0 && t1 == 1.0 {
+                seg
+            } else {
+                seg.subsegment(t0..t1)
+            };
+            frags.push(Frag {
+                i,
+                seg: piece,
+                from_start: a0 == 0.0,
+                to_end: a1 >= len,
+            });
         }
     }
     if intact {
@@ -129,7 +141,13 @@ fn kept_chains(an: &Analysis, segs: std::ops::Range<usize>, closed: bool) -> Vec
                 r.last = f.i;
                 r.to_end = f.to_end;
             }
-            _ => runs.push(Run { segs: vec![f.seg], first: f.i, from_start: f.from_start, last: f.i, to_end: f.to_end }),
+            _ => runs.push(Run {
+                segs: vec![f.seg],
+                first: f.i,
+                from_start: f.from_start,
+                last: f.i,
+                to_end: f.to_end,
+            }),
         }
     }
     // On a closed loop the last run may carry on across the start into the first.
@@ -143,7 +161,12 @@ fn kept_chains(an: &Analysis, segs: std::ops::Range<usize>, closed: bool) -> Vec
             runs[0].segs = last.segs;
         }
     }
-    runs.into_iter().map(|r| Chain { segs: r.segs, closed: false }).collect()
+    runs.into_iter()
+        .map(|r| Chain {
+            segs: r.segs,
+            closed: false,
+        })
+        .collect()
 }
 
 fn write_chain(d: &mut String, chain: &Chain, inv: Affine) {

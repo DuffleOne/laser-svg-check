@@ -5,10 +5,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gpui::{
-    App, AppContext, Application, Bounds, Context, Div, ExternalPaths, FontWeight, Global, Hsla,
-    KeyBinding, Menu, MenuItem, ObjectFit, PathPromptOptions, Render, RenderImage, SharedString,
-    Stateful, TitlebarOptions, Window, WindowAppearance, WindowBounds, WindowHandle, WindowKind,
-    WindowOptions, actions, div, img, prelude::*, px, rgb, size,
+    App, AppContext, Application, Bounds, Context, Div, ExternalPaths, FontWeight, Global, Hsla, KeyBinding,
+    Menu, MenuItem, ObjectFit, PathPromptOptions, Render, RenderImage, SharedString, Stateful,
+    TitlebarOptions, Window, WindowAppearance, WindowBounds, WindowHandle, WindowKind, WindowOptions,
+    actions, div, img, prelude::*, px, rgb, size,
 };
 use kurbo::Rect;
 
@@ -42,10 +42,16 @@ pub fn run(start: Start) {
             KeyBinding::new("cmd-o", OpenFiles, None),
         ]);
         cx.set_menus(vec![
-            Menu { name: "Laser Check".into(), items: vec![MenuItem::action("Quit Laser Check", Quit)] },
+            Menu {
+                name: "Laser Check".into(),
+                items: vec![MenuItem::action("Quit Laser Check", Quit)],
+            },
             Menu {
                 name: "File".into(),
-                items: vec![MenuItem::action("Open…", OpenFiles), MenuItem::action("Close Window", CloseWindow)],
+                items: vec![
+                    MenuItem::action("Open…", OpenFiles),
+                    MenuItem::action("Close Window", CloseWindow),
+                ],
             },
         ]);
         cx.on_window_closed(|cx| {
@@ -77,12 +83,13 @@ fn file_url_to_path(u: &str) -> Option<PathBuf> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut i = 0;
     while i < bytes.len() {
-        if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let Ok(b) = u8::from_str_radix(&rest[i + 1..i + 3], 16) {
-                out.push(b);
-                i += 3;
-                continue;
-            }
+        if bytes[i] == b'%'
+            && i + 2 < bytes.len()
+            && let Ok(b) = u8::from_str_radix(&rest[i + 1..i + 3], 16)
+        {
+            out.push(b);
+            i += 3;
+            continue;
         }
         out.push(bytes[i]);
         i += 1;
@@ -107,7 +114,10 @@ struct Theme {
 }
 
 fn theme(window: &Window) -> Theme {
-    let dark = matches!(window.appearance(), WindowAppearance::Dark | WindowAppearance::VibrantDark);
+    let dark = matches!(
+        window.appearance(),
+        WindowAppearance::Dark | WindowAppearance::VibrantDark
+    );
     if dark {
         Theme {
             bg: rgb(0x1e1e20).into(),
@@ -138,7 +148,10 @@ fn theme(window: &Window) -> Theme {
 }
 
 fn is_dark(window: &Window) -> bool {
-    matches!(window.appearance(), WindowAppearance::Dark | WindowAppearance::VibrantDark)
+    matches!(
+        window.appearance(),
+        WindowAppearance::Dark | WindowAppearance::VibrantDark
+    )
 }
 
 fn button(id: impl Into<gpui::ElementId>, label: impl Into<SharedString>, t: Theme) -> Stateful<Div> {
@@ -158,15 +171,33 @@ fn button(id: impl Into<gpui::ElementId>, label: impl Into<SharedString>, t: The
 
 fn primary(id: impl Into<gpui::ElementId>, label: impl Into<SharedString>, t: Theme) -> Stateful<Div> {
     let hover = t.red.opacity(0.85);
-    button(id, label, t).bg(t.red).text_color(gpui::white()).font_weight(FontWeight::SEMIBOLD).hover(move |s| s.bg(hover))
+    button(id, label, t)
+        .bg(t.red)
+        .text_color(gpui::white())
+        .font_weight(FontWeight::SEMIBOLD)
+        .hover(move |s| s.bg(hover))
 }
 
-fn metres(mm: f64) -> String {
-    if mm >= 1000.0 { format!("{:.2} m", mm / 1000.0) } else { format!("{mm:.0} mm") }
+pub fn areas(n: usize) -> String {
+    if n == 1 {
+        "1 area".into()
+    } else {
+        format!("{n} areas")
+    }
+}
+
+pub fn metres(mm: f64) -> String {
+    if mm >= 1000.0 {
+        format!("{:.2} m", mm / 1000.0)
+    } else {
+        format!("{mm:.0} mm")
+    }
 }
 
 fn name(p: &Path) -> String {
-    p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+    p.file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default()
 }
 
 fn settings() -> Settings {
@@ -246,7 +277,10 @@ pub fn open_review(paths: Vec<PathBuf>, ready: Vec<Item>, cx: &mut App) {
         .open_window(
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
-                titlebar: Some(TitlebarOptions { title: Some("Laser Check".into()), ..Default::default() }),
+                titlebar: Some(TitlebarOptions {
+                    title: Some("Laser Check".into()),
+                    ..Default::default()
+                }),
                 window_min_size: Some(size(px(760.), px(480.))),
                 focus: true,
                 ..Default::default()
@@ -291,10 +325,16 @@ impl Review {
             if self.files.iter().any(|f| f.path == path) {
                 continue;
             }
-            self.files.push(Item { path: path.clone(), state: State::Checking, fixed: None });
+            self.files.push(Item {
+                path: path.clone(),
+                state: State::Checking,
+                fixed: None,
+            });
             cx.spawn(async move |this, cx| {
                 let p = path.clone();
-                let res = cx.background_spawn(async move { crate::analyse_file(&p, &s) }).await;
+                let res = cx
+                    .background_spawn(async move { crate::analyse_file(&p, &s) })
+                    .await;
                 let _ = this.update(cx, |this, cx| {
                     if let Some(it) = this.files.iter_mut().find(|f| f.path == path) {
                         it.state = match res {
@@ -321,7 +361,10 @@ impl Review {
             return;
         }
         let s = self.settings;
-        let bad = self.files.iter().position(|f| matches!(&f.state, State::Ready(a) if a.has_problems(&s)));
+        let bad = self
+            .files
+            .iter()
+            .position(|f| matches!(&f.state, State::Ready(a) if a.has_problems(&s)));
         self.selected = bad.or(Some(0));
         self.area = None;
     }
@@ -333,12 +376,17 @@ impl Review {
     }
 
     fn step_area(&mut self, delta: isize, cx: &mut Context<Self>) {
-        let Some(an) = self.selected_analysis() else { return };
+        let Some(an) = self.selected_analysis() else {
+            return;
+        };
         let n = an.areas.len() as isize;
         if n == 0 {
             return;
         }
-        let cur = self.area.map(|a| a as isize).unwrap_or(if delta > 0 { -1 } else { n });
+        let cur = self
+            .area
+            .map(|a| a as isize)
+            .unwrap_or(if delta > 0 { -1 } else { n });
         self.area = Some((cur + delta).rem_euclid(n) as usize);
         cx.notify();
     }
@@ -361,10 +409,11 @@ impl Review {
     fn fix_all(&mut self, cx: &mut Context<Self>) {
         let s = self.settings;
         for it in &mut self.files {
-            if let State::Ready(an) = &it.state {
-                if an.has_problems(&s) && it.fixed.is_none() {
-                    it.fixed = Some(fix_one(&it.path, an));
-                }
+            if let State::Ready(an) = &it.state
+                && an.has_problems(&s)
+                && it.fixed.is_none()
+            {
+                it.fixed = Some(fix_one(&it.path, an));
             }
         }
         cx.notify();
@@ -387,7 +436,12 @@ impl Review {
                 .background_spawn(async move {
                     let pm = crate::render::render(
                         &an,
-                        &crate::render::View { region, width: k.w, height: k.h, focus },
+                        &crate::render::View {
+                            region,
+                            width: k.w,
+                            height: k.h,
+                            focus,
+                        },
                         k.dark,
                     );
                     to_render_image(pm)
@@ -425,7 +479,7 @@ fn to_render_image(pm: tiny_skia::Pixmap) -> RenderImage {
     let (w, h) = (pm.width(), pm.height());
     let mut data = pm.take();
     // tiny-skia gives RGBA, gpui wants BGRA.
-    for px in data.chunks_exact_mut(4) {
+    for px in data.as_chunks_mut::<4>().0 {
         px.swap(0, 2);
     }
     let buf = image::RgbaImage::from_raw(w, h, data).expect("pixmap size");
@@ -441,7 +495,11 @@ impl Render for Review {
             .iter()
             .filter(|f| matches!(&f.state, State::Ready(a) if a.has_problems(&s)) && f.fixed.is_none())
             .count();
-        let checking = self.files.iter().filter(|f| matches!(f.state, State::Checking)).count();
+        let checking = self
+            .files
+            .iter()
+            .filter(|f| matches!(f.state, State::Checking))
+            .count();
 
         let summary = if self.files.is_empty() {
             "Drop SVGs or folders anywhere in this window".to_string()
@@ -467,13 +525,21 @@ impl Render for Review {
                     .flex()
                     .flex_col()
                     .child(div().text_lg().font_weight(FontWeight::BOLD).child("Laser Check"))
-                    .child(div().text_sm().text_color(if n_bad > 0 { t.red } else { t.muted }).child(summary)),
+                    .child(
+                        div()
+                            .text_sm()
+                            .text_color(if n_bad > 0 { t.red } else { t.muted })
+                            .child(summary),
+                    ),
             )
             .child(
                 div()
                     .flex()
                     .gap_2()
-                    .child(button("add", "Add files…", t).on_click(cx.listener(|_, _, _, cx| prompt_and_review(cx))))
+                    .child(
+                        button("add", "Add files…", t)
+                            .on_click(cx.listener(|_, _, _, cx| prompt_and_review(cx))),
+                    )
                     .when(n_bad > 1, |d| {
                         d.child(
                             primary("fix-all", format!("Fix all {n_bad}"), t)
@@ -497,9 +563,17 @@ impl Render for Review {
                     .border_color(t.border)
                     .rounded_xl()
                     .text_color(t.muted)
-                    .child(div().text_xl().text_color(t.text).child("Drop SVG files or folders here"))
+                    .child(
+                        div()
+                            .text_xl()
+                            .text_color(t.text)
+                            .child("Drop SVG files or folders here"),
+                    )
                     .child("Each file is checked for lines the laser would cut more than once.")
-                    .child(button("choose", "Choose files…", t).on_click(cx.listener(|_, _, _, cx| prompt_and_review(cx)))),
+                    .child(
+                        button("choose", "Choose files…", t)
+                            .on_click(cx.listener(|_, _, _, cx| prompt_and_review(cx))),
+                    ),
             )
         } else {
             let viewport = window.viewport_size();
@@ -529,7 +603,13 @@ impl Render for Review {
                         .when(selected, |d| d.bg(t.button))
                         .hover(move |d| d.bg(t.button_hover))
                         .on_click(cx.listener(move |this, _, _, cx| this.select(ix, cx)))
-                        .child(div().text_sm().font_weight(FontWeight::MEDIUM).truncate().child(name(&f.path)))
+                        .child(
+                            div()
+                                .text_sm()
+                                .font_weight(FontWeight::MEDIUM)
+                                .truncate()
+                                .child(name(&f.path)),
+                        )
                         .child(div().text_xs().text_color(color).truncate().child(status))
                 }));
 
@@ -558,9 +638,10 @@ fn status_line(f: &Item, s: &Settings, t: Theme) -> (String, Hsla) {
         (_, Some(Err(e))) => (format!("Fix failed: {e}"), t.red),
         (State::Checking, _) => ("Checking…".into(), t.muted),
         (State::Failed(e), _) => (format!("Couldn't read: {e}"), t.red),
-        (State::Ready(a), _) if a.has_problems(s) => {
-            (format!("{} cut twice, {} areas", metres(a.removed_mm), a.areas.len()), t.red)
-        }
+        (State::Ready(a), _) if a.has_problems(s) => (
+            format!("{} cut twice, {}", metres(a.removed_mm), areas(a.areas.len())),
+            t.red,
+        ),
         (State::Ready(_), _) => ("No double lines".into(), t.green),
     }
 }
@@ -578,15 +659,29 @@ impl Review {
         let s = self.settings;
         let pane = div().flex_1().min_w_0().flex().flex_col();
         let Some(ix) = self.selected else {
-            return pane.items_center().justify_center().text_color(t.muted).child("Checking…");
+            return pane
+                .items_center()
+                .justify_center()
+                .text_color(t.muted)
+                .child("Checking…");
         };
         let item = &self.files[ix];
         let path = item.path.clone();
         let an = match &item.state {
             State::Ready(a) => a.clone(),
-            State::Checking => return pane.items_center().justify_center().text_color(t.muted).child("Checking…"),
+            State::Checking => {
+                return pane
+                    .items_center()
+                    .justify_center()
+                    .text_color(t.muted)
+                    .child("Checking…");
+            }
             State::Failed(e) => {
-                return pane.items_center().justify_center().text_color(t.red).child(format!("Couldn't read this file: {e}"));
+                return pane
+                    .items_center()
+                    .justify_center()
+                    .text_color(t.red)
+                    .child(format!("Couldn't read this file: {e}"));
             }
         };
         let bad = an.has_problems(&s);
@@ -602,16 +697,25 @@ impl Review {
             .gap_2()
             .border_b_1()
             .border_color(t.border)
-            .child(div().flex_1().min_w_0().truncate().font_weight(FontWeight::MEDIUM).child(name(&path)))
+            .child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .truncate()
+                    .font_weight(FontWeight::MEDIUM)
+                    .child(name(&path)),
+            )
             .when(bad && n_areas > 0, |d| {
                 let label = match self.area {
                     Some(a) => format!("Area {} of {n_areas}", a + 1),
-                    None => format!("{n_areas} areas"),
+                    None => areas(n_areas),
                 };
-                d.child(button("whole", "Whole sheet", t).on_click(cx.listener(|this, _, _, cx| {
-                    this.area = None;
-                    cx.notify();
-                })))
+                d.child(
+                    button("whole", "Whole sheet", t).on_click(cx.listener(|this, _, _, cx| {
+                        this.area = None;
+                        cx.notify();
+                    })),
+                )
                 .child(button("prev", "◀", t).on_click(cx.listener(|this, _, _, cx| this.step_area(-1, cx))))
                 .child(div().text_sm().text_color(t.muted).child(label))
                 .child(button("next", "▶", t).on_click(cx.listener(|this, _, _, cx| this.step_area(1, cx))))
@@ -624,16 +728,27 @@ impl Review {
                 move |_, _, cx| cx.reveal_path(&target)
             }))
             .when(bad && fixed.is_none(), |d| {
-                d.child(primary("fix", "Fix it", t).on_click(cx.listener(move |this, _, _, cx| this.fix(ix, cx))))
+                d.child(
+                    primary("fix", "Fix it", t).on_click(cx.listener(move |this, _, _, cx| this.fix(ix, cx))),
+                )
             });
 
         let w = (pw * scale) as u32;
         let h = (ph * scale) as u32;
-        let key = Key { path, area: self.area, w, h, dark: is_dark(window) };
+        let key = Key {
+            path,
+            area: self.area,
+            w,
+            h,
+            dark: is_dark(window),
+        };
         self.ensure_preview(key, an.clone(), window, cx);
 
         let note = if let Some(Ok(out)) = &fixed {
-            format!("Fixed copy saved as {}. Red shows where the original had double lines.", name(out))
+            format!(
+                "Fixed copy saved as {}. Red shows where the original had double lines.",
+                name(out)
+            )
         } else if bad {
             format!(
                 "Red lines are drawn more than once. Fixing keeps the first copy and saves {}.",
@@ -654,7 +769,10 @@ impl Review {
             .gap_2()
             .child(match &self.preview {
                 Some((_, image)) => div().child(
-                    img(image.clone()).w(px(pw)).h(px(ph - 24.0)).object_fit(ObjectFit::Contain),
+                    img(image.clone())
+                        .w(px(pw))
+                        .h(px(ph - 24.0))
+                        .object_fit(ObjectFit::Contain),
                 ),
                 None => div().text_color(t.muted).child("Drawing…"),
             })
@@ -695,7 +813,10 @@ fn open_alert(paths: Vec<PathBuf>, cx: &mut App) {
     let _ = cx.open_window(
         WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(bounds)),
-            titlebar: Some(TitlebarOptions { title: Some("Laser Check".into()), ..Default::default() }),
+            titlebar: Some(TitlebarOptions {
+                title: Some("Laser Check".into()),
+                ..Default::default()
+            }),
             // Floats above everything else until dealt with.
             kind: WindowKind::PopUp,
             is_resizable: false,
@@ -752,26 +873,53 @@ impl Render for Alert {
         };
         let subtitle = if done {
             let ok = self.fixed.iter().filter(|f| f.is_ok()).count();
-            format!("Saved {ok} fixed {} next to the original{}. The originals are untouched.", if ok == 1 { "copy" } else { "copies" }, if ok == 1 { "" } else { "s" })
+            format!(
+                "Saved {ok} fixed {} next to the original{}. The originals are untouched.",
+                if ok == 1 { "copy" } else { "copies" },
+                if ok == 1 { "" } else { "s" }
+            )
         } else {
-            format!("The laser would go over {} of line more than once.", metres(total))
+            format!(
+                "The laser would go over {} of line more than once.",
+                metres(total)
+            )
         };
 
-        let list = div().flex().flex_col().gap_1().children(self.items.iter().take(5).enumerate().map(|(i, (p, an))| {
-            let right = match self.fixed.get(i) {
-                Some(Ok(out)) => format!("→ {}", name(out)),
-                Some(Err(e)) => format!("fix failed: {e}"),
-                None => metres(an.removed_mm),
-            };
+        let list = div()
+            .flex()
+            .flex_col()
+            .gap_1()
+            .children(self.items.iter().take(5).enumerate().map(|(i, (p, an))| {
+                let right = match self.fixed.get(i) {
+                    Some(Ok(out)) => format!("→ {}", name(out)),
+                    Some(Err(e)) => format!("fix failed: {e}"),
+                    None => metres(an.removed_mm),
+                };
+                div()
+                    .flex()
+                    .justify_between()
+                    .gap_4()
+                    .text_sm()
+                    .child(
+                        div()
+                            .min_w_0()
+                            .truncate()
+                            .font_weight(FontWeight::MEDIUM)
+                            .child(name(p)),
+                    )
+                    .child(
+                        div()
+                            .flex_shrink_0()
+                            .text_color(if done { t.green } else { t.red })
+                            .child(right),
+                    )
+            }));
+        let more = (n > 5).then(|| {
             div()
-                .flex()
-                .justify_between()
-                .gap_4()
-                .text_sm()
-                .child(div().min_w_0().truncate().font_weight(FontWeight::MEDIUM).child(name(p)))
-                .child(div().flex_shrink_0().text_color(if done { t.green } else { t.red }).child(right))
-        }));
-        let more = (n > 5).then(|| div().text_xs().text_color(t.muted).child(format!("and {} more", n - 5)));
+                .text_xs()
+                .text_color(t.muted)
+                .child(format!("and {} more", n - 5))
+        });
 
         let buttons = if done {
             let first = self.fixed.iter().find_map(|f| f.as_ref().ok().cloned());
@@ -780,25 +928,43 @@ impl Render for Alert {
                 .gap_2()
                 .justify_end()
                 .when_some(first, |d, out| {
-                    d.child(button("finder", "Show in Finder", t).on_click(move |_, _, cx| cx.reveal_path(&out)))
+                    d.child(
+                        button("finder", "Show in Finder", t).on_click(move |_, _, cx| cx.reveal_path(&out)),
+                    )
                 })
-                .child(button("show", "Show me", t).on_click(cx.listener(|this, _, window, cx| this.show(window, cx))))
-                .child(primary("done", "Done", t).on_click(cx.listener(|_, _, window, _| window.remove_window())))
+                .child(
+                    button("show", "Show me", t)
+                        .on_click(cx.listener(|this, _, window, cx| this.show(window, cx))),
+                )
+                .child(
+                    primary("done", "Done", t)
+                        .on_click(cx.listener(|_, _, window, _| window.remove_window())),
+                )
         } else {
             div()
                 .flex()
                 .gap_2()
                 .justify_end()
-                .child(button("ignore", "Ignore", t).on_click(cx.listener(|_, _, window, _| window.remove_window())))
-                .child(button("show", "Show me", t).on_click(cx.listener(|this, _, window, cx| this.show(window, cx))))
-                .child(button("fix-show", "Fix and show me", t).on_click(cx.listener(|this, _, window, cx| {
-                    this.fix();
-                    this.show(window, cx);
-                })))
-                .child(primary("fix", "Fix it", t).on_click(cx.listener(|this, _, _, cx| {
-                    this.fix();
-                    cx.notify();
-                })))
+                .child(
+                    button("ignore", "Ignore", t)
+                        .on_click(cx.listener(|_, _, window, _| window.remove_window())),
+                )
+                .child(
+                    button("show", "Show me", t)
+                        .on_click(cx.listener(|this, _, window, cx| this.show(window, cx))),
+                )
+                .child(button("fix-show", "Fix and show me", t).on_click(cx.listener(
+                    |this, _, window, cx| {
+                        this.fix();
+                        this.show(window, cx);
+                    },
+                )))
+                .child(
+                    primary("fix", "Fix it", t).on_click(cx.listener(|this, _, _, cx| {
+                        this.fix();
+                        cx.notify();
+                    })),
+                )
         };
 
         let accent = if done { t.green } else { t.red };

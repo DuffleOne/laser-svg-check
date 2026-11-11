@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --release --all-targets -- -D warnings
+      - run: cargo test --release
+      - name: Examples behave
+        run: |
+          ./target/release/laser-check check examples/clean.svg
+          if ./target/release/laser-check check examples/duplicated-layer.svg; then
+            echo "duplicated-layer.svg should have been flagged" && exit 1
+          fi
+          cp examples/honeycomb-coaster.svg "$RUNNER_TEMP/"
+          ./target/release/laser-check fix "$RUNNER_TEMP/honeycomb-coaster.svg"
+          ./target/release/laser-check check "$RUNNER_TEMP/honeycomb-coaster-fixed.svg"
+          ./target/release/laser-check verify "$RUNNER_TEMP/honeycomb-coaster.svg" "$RUNNER_TEMP/honeycomb-coaster-fixed.svg"

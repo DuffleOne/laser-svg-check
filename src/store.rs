@@ -24,7 +24,10 @@ pub struct Entry {
 }
 
 fn now() -> u64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
 }
 
 fn file() -> PathBuf {
@@ -37,7 +40,10 @@ pub fn hash(bytes: &[u8]) -> String {
 
 impl Seen {
     pub fn load() -> Seen {
-        std::fs::read(file()).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
+        std::fs::read(file())
+            .ok()
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .unwrap_or_default()
     }
 
     pub fn save(&mut self) {
@@ -46,10 +52,10 @@ impl Seen {
         self.entries.retain(|_, e| e.at >= cutoff);
         let _ = std::fs::create_dir_all(state_dir());
         let tmp = file().with_extension("tmp");
-        if let Ok(json) = serde_json::to_vec_pretty(self) {
-            if std::fs::write(&tmp, json).is_ok() {
-                let _ = std::fs::rename(&tmp, file());
-            }
+        if let Ok(json) = serde_json::to_vec_pretty(self)
+            && std::fs::write(&tmp, json).is_ok()
+        {
+            let _ = std::fs::rename(&tmp, file());
         }
     }
 
@@ -64,7 +70,14 @@ impl Seen {
     }
 
     pub fn record(&mut self, hash: String, path: &Path, clean: bool) {
-        self.entries.insert(hash, Entry { path: path.display().to_string(), at: now(), clean });
+        self.entries.insert(
+            hash,
+            Entry {
+                path: path.display().to_string(),
+                at: now(),
+                clean,
+            },
+        );
     }
 }
 

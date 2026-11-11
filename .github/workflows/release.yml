@@ -1,0 +1,52 @@
+name: Release
+
+# Push a tag like v0.2.0 to build a universal macOS app and publish it.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --release
+
+      - name: Check the tag matches Cargo.toml
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          [[ "${GITHUB_REF_NAME}" == "v$version" ]] || { echo "tag ${GITHUB_REF_NAME} but Cargo.toml says $version"; exit 1; }
+
+      - name: Build and package
+        id: package
+        run: |
+          zip=$(scripts/package.sh)
+          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+          echo "version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Release notes
+        run: |
+          # The CHANGELOG section for this version, then install steps.
+          awk -v v="${{ steps.package.outputs.version }}" '
+            $0 ~ "^## \\[?" v "\\]?" {on=1; next}
+            on && /^## / {exit}
+            on {print}
+          ' CHANGELOG.md > notes.md
+          cat .github/release-footer.md >> notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Laser Check ${{ steps.package.outputs.version }}
+          body_path: notes.md
+          files: |
+            ${{ steps.package.outputs.zip }}
+            ${{ steps.package.outputs.zip }}.sha256

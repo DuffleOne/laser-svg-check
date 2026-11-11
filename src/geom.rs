@@ -41,13 +41,39 @@ pub struct Seg {
 }
 
 const GEOMETRY_ATTRS: &[&str] = &[
-    "d", "points", "x", "y", "width", "height", "rx", "ry", "cx", "cy", "r", "x1", "y1", "x2",
-    "y2", "pathLength",
+    "d",
+    "points",
+    "x",
+    "y",
+    "width",
+    "height",
+    "rx",
+    "ry",
+    "cx",
+    "cy",
+    "r",
+    "x1",
+    "y1",
+    "x2",
+    "y2",
+    "pathLength",
 ];
 
 const NON_RENDERED: &[&str] = &[
-    "defs", "clipPath", "mask", "symbol", "pattern", "marker", "linearGradient", "radialGradient",
-    "style", "title", "desc", "metadata", "script", "filter",
+    "defs",
+    "clipPath",
+    "mask",
+    "symbol",
+    "pattern",
+    "marker",
+    "linearGradient",
+    "radialGradient",
+    "style",
+    "title",
+    "desc",
+    "metadata",
+    "script",
+    "filter",
 ];
 
 pub fn parse(src: String) -> Result<Doc> {
@@ -64,7 +90,10 @@ pub fn parse(src: String) -> Result<Doc> {
     {
         let xml = roxmltree::Document::parse_with_options(
             &src,
-            roxmltree::ParsingOptions { allow_dtd: true, ..Default::default() },
+            roxmltree::ParsingOptions {
+                allow_dtd: true,
+                ..Default::default()
+            },
         )
         .context("not valid XML")?;
         let root = xml.root_element();
@@ -115,7 +144,10 @@ fn root_units(root: &roxmltree::Node) -> (Rect, f64) {
                     .unwrap_or(100.0)
             };
             let (ww, hh) = (num("width"), num("height"));
-            (Rect::new(0.0, 0.0, ww, hh), w.map(|w| w / ww).unwrap_or(25.4 / 72.0))
+            (
+                Rect::new(0.0, 0.0, ww, hh),
+                w.map(|w| w / ww).unwrap_or(25.4 / 72.0),
+            )
         }
     }
 }
@@ -160,7 +192,7 @@ fn walk(
             return;
         }
         "svg" => {
-            ctm = ctm * Affine::translate((num(&node, "x"), num(&node, "y")));
+            ctm *= Affine::translate((num(&node, "x"), num(&node, "y")));
             for child in node.children().filter(|n| n.is_element()) {
                 walk(child, ctm, doc, skipped);
             }
@@ -168,7 +200,12 @@ fn walk(
         }
         "path" => node.attribute("d").and_then(|d| BezPath::from_svg(d).ok()),
         "rect" => {
-            let (x, y, w, h) = (num(&node, "x"), num(&node, "y"), num(&node, "width"), num(&node, "height"));
+            let (x, y, w, h) = (
+                num(&node, "x"),
+                num(&node, "y"),
+                num(&node, "width"),
+                num(&node, "height"),
+            );
             let (mut rx, mut ry) = (num(&node, "rx"), num(&node, "ry"));
             if rx == 0.0 {
                 rx = ry;
@@ -192,9 +229,8 @@ fn walk(
         }
         "ellipse" => {
             let (rx, ry) = (num(&node, "rx"), num(&node, "ry"));
-            (rx > 0.0 && ry > 0.0).then(|| {
-                Ellipse::new((num(&node, "cx"), num(&node, "cy")), (rx, ry), 0.0).to_path(0.001)
-            })
+            (rx > 0.0 && ry > 0.0)
+                .then(|| Ellipse::new((num(&node, "cx"), num(&node, "cy")), (rx, ry), 0.0).to_path(0.001))
         }
         "line" => {
             let mut p = BezPath::new();
@@ -239,7 +275,10 @@ fn walk(
         match *pe {
             PathEl::MoveTo(p) => {
                 if open && doc.segs.len() > start {
-                    subpaths.push(Subpath { segs: start..doc.segs.len(), closed: false });
+                    subpaths.push(Subpath {
+                        segs: start..doc.segs.len(),
+                        closed: false,
+                    });
                 }
                 start = doc.segs.len();
                 first = p;
@@ -263,7 +302,10 @@ fn walk(
                 // closed subpath's segments form a full loop.
                 push(doc, PathSeg::Line(kurbo::Line::new(last, first)));
                 if doc.segs.len() > start {
-                    subpaths.push(Subpath { segs: start..doc.segs.len(), closed: true });
+                    subpaths.push(Subpath {
+                        segs: start..doc.segs.len(),
+                        closed: true,
+                    });
                 }
                 start = doc.segs.len();
                 last = first;
@@ -273,7 +315,15 @@ fn walk(
         }
     }
     if open && doc.segs.len() > start {
-        subpaths.push(Subpath { segs: start..doc.segs.len(), closed: false });
+        subpaths.push(Subpath {
+            segs: start..doc.segs.len(),
+            closed: false,
+        });
     }
-    doc.elements.push(Element { range: node.range(), keep_attrs, ctm, subpaths });
+    doc.elements.push(Element {
+        range: node.range(),
+        keep_attrs,
+        ctm,
+        subpaths,
+    });
 }

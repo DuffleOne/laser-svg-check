@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420">
+  <defs>
+    <linearGradient id="banner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c2030"/>
+      <stop offset="1" stop-color="#090a10"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff7a2a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ff7a2a" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="420" rx="28" fill="url(#banner)"/>
+  <g stroke="#ffffff" stroke-opacity="0.04" stroke-width="2">
+    <line x1="0" y1="105" x2="1280" y2="105"/><line x1="0" y1="210" x2="1280" y2="210"/><line x1="0" y1="315" x2="1280" y2="315"/>
+    <line x1="320" y1="0" x2="320" y2="420"/><line x1="640" y1="0" x2="640" y2="420"/><line x1="960" y1="0" x2="960" y2="420"/>
+  </g>
+  <svg x="70" y="60" width="300" height="300" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="ibg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#262b3d"/>
+      <stop offset="1" stop-color="#0b0d14"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5d6478"/>
+      <stop offset="0.45" stop-color="#c9cedb"/>
+      <stop offset="1" stop-color="#4a5063"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff2d55" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#ff4d4d" stop-opacity="1"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.18" stop-color="#ffe2c4"/>
+      <stop offset="0.42" stop-color="#ff5a36" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ff2d55" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tile">
+      <rect x="100" y="100" width="824" height="824" rx="185"/>
+    </clipPath>
+  </defs>
+
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#ibg)"/>
+
+  <g clip-path="url(#tile)">
+    <!-- honeycomb-ish bed lines -->
+    <g stroke="#ffffff" stroke-opacity="0.045" stroke-width="3">
+      <line x1="100" y1="300" x2="924" y2="300"/>
+      <line x1="100" y1="460" x2="924" y2="460"/>
+      <line x1="100" y1="620" x2="924" y2="620"/>
+      <line x1="100" y1="780" x2="924" y2="780"/>
+      <line x1="260" y1="100" x2="260" y2="924"/>
+      <line x1="420" y1="100" x2="420" y2="924"/>
+      <line x1="580" y1="100" x2="580" y2="924"/>
+      <line x1="740" y1="100" x2="740" y2="924"/>
+    </g>
+
+    <!-- not cut yet -->
+    <path d="M512,350 C576,405 620.5,470 626.75,545" fill="none" stroke="#5a6280" stroke-width="7" stroke-dasharray="16 16" stroke-linecap="round"/>
+
+    <!-- already cut, once: glowing -->
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M626.75,545 C633,620 601,705 512,800 C334,610 384,460 512,350" stroke="#ff6a1a" stroke-opacity="0.10" stroke-width="58"/>
+      <path d="M626.75,545 C633,620 601,705 512,800 C334,610 384,460 512,350" stroke="#ff6a1a" stroke-opacity="0.22" stroke-width="30"/>
+      <path d="M626.75,545 C633,620 601,705 512,800 C334,610 384,460 512,350" stroke="#ff8a3a" stroke-opacity="0.85" stroke-width="13"/>
+      <path d="M626.75,545 C633,620 601,705 512,800 C334,610 384,460 512,350" stroke="#ffe0b8" stroke-width="5"/>
+    </g>
+
+    <!-- beam -->
+    <rect x="597" y="230" width="60" height="315" fill="#ff2d55" fill-opacity="0.16"/>
+    <rect x="613" y="230" width="28" height="315" fill="#ff2d55" fill-opacity="0.28"/>
+    <rect x="621" y="230" width="12" height="315" fill="url(#beam)"/>
+    <rect x="625" y="230" width="4" height="315" fill="#ffe4ea"/>
+
+    <!-- head -->
+    <path d="M547,60 L707,60 L707,150 L667,215 L587,215 L547,150 Z" fill="url(#metal)"/>
+    <rect x="603" y="212" width="48" height="22" rx="5" fill="#2b2f3c"/>
+    <rect x="547" y="140" width="160" height="10" fill="#000" fill-opacity="0.25"/>
+
+    <!-- hot spot and sparks -->
+    <circle cx="627" cy="545" r="92" fill="url(#spot)"/>
+    <g stroke="#ffc27a" stroke-width="6" stroke-linecap="round">
+      <line x1="672" y1="512" x2="706" y2="488"/>
+      <line x1="684" y1="552" x2="724" y2="560"/>
+      <line x1="664" y1="590" x2="690" y2="622"/>
+      <line x1="586" y1="508" x2="566" y2="482"/>
+    </g>
+    <circle cx="627" cy="545" r="13" fill="#ffffff"/>
+  </g>
+</svg>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="420" y="190" fill="#f2f3f7" font-size="84" font-weight="700" letter-spacing="-1.5">Laser Check</text>
+    <text x="424" y="246" fill="#a3a8b8" font-size="30">Catches lines your laser would cut twice,</text>
+    <text x="424" y="288" fill="#a3a8b8" font-size="30">and fixes them before they reach the cutter.</text>
+  </g>
+  <path d="M424,336 L1060,336" stroke="url(#trail)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M1060,336 L1200,336" stroke="#5a6280" stroke-width="5" stroke-dasharray="12 12" stroke-linecap="round"/>
+  <circle cx="1060" cy="336" r="26" fill="#ff5a36" fill-opacity="0.25"/>
+  <circle cx="1060" cy="336" r="9" fill="#fff"/>
+</svg>

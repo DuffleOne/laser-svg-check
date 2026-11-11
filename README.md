@@ -1,57 +1,185 @@
-# Laser Check
+<p align="center">
+  <img src="docs/images/banner.svg" alt="Laser Check" width="100%">
+</p>
 
-Illustrator sometimes exports SVGs with lines stacked on top of each other, so the laser cuts the same line two or three times. Laser Check watches a folder (Downloads by default) for new SVGs, pops up an alert when it finds doubled lines, and can write a fixed copy with every line cut once.
+<p align="center">
+  <a href="https://github.com/DuffleOne/laser-svg-check/releases/latest"><img src="https://img.shields.io/github/v/release/DuffleOne/laser-svg-check?label=download&color=ff5a36" alt="Latest release"></a>
+  <a href="https://github.com/DuffleOne/laser-svg-check/actions/workflows/ci.yml"><img src="https://github.com/DuffleOne/laser-svg-check/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-1d1d1f?logo=apple" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/Apple%20silicon%20%2B%20Intel-universal-5a6280" alt="Universal">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-5a6280" alt="MIT licence"></a>
+</p>
 
-Open the app on its own to drop SVGs or folders onto it and review a batch.
+SVGs exported from Illustrator often have lines stacked on top of each other: shapes that share an edge, a layer that got duplicated, a stroke that was outlined twice. A laser cutter doesn't know they're the same line, so it cuts them two or three times. That burns the edges, wastes time and can cut right through things you meant to keep.
+
+Laser Check sits quietly in the background, looks at every SVG that lands in your Downloads (from AirDrop, iMessage, a browser, anywhere), and pops up an alert the moment it finds doubled lines. One click shows you exactly where they are; another writes a fixed copy where every line is cut once.
+
+<p align="center">
+  <img src="docs/images/alert.png" alt="The alert Laser Check shows when a new SVG has doubled lines" width="560">
+</p>
+
+<p align="center">
+  <img src="docs/images/review.png" alt="The review window, with doubled hexagon edges in red" width="900">
+</p>
+
+## Contents
+
+- [Features](#features)
+- [Install](#install)
+- [Using it](#using-it)
+- [How it decides](#how-it-decides)
+- [Settings](#settings)
+- [Command line](#command-line)
+- [Troubleshooting](#troubleshooting)
+- [Uninstall](#uninstall)
+- [Building from source](#building-from-source)
+- [More docs](#more-docs)
+
+## Features
+
+- **Watches folders for you.** New SVGs in `~/Downloads` (or any folders you choose) are checked within a couple of seconds of arriving. Files still being written are left alone until they settle.
+- **An alert you won't miss.** A floating window with a sound, listing each file and how much line would be cut twice. Fix it, see it, or both.
+- **See exactly what's wrong.** Doubled lines are drawn in red over the whole sheet. Step through each problem area with ◀ ▶.
+- **Safe fixes.** The fix keeps the first copy of every line and trims the rest, joining paths back up where it can. It writes `name-fixed.svg` next to the original and never touches the original. Everything it didn't need to change, from layers and ids to colours, text and images, is copied byte for byte.
+- **Review a batch.** Open the app and drop in SVGs, a selection, or whole folders. Fix them one at a time or all at once.
+- **Doesn't nag.** Files are remembered by content hash. Clean files are never checked again; a file you've already been warned about stays quiet for 3 days. The app's own fixed copies are never flagged.
+- **Light on your Mac.** The watcher uses about 3 MB of memory and no CPU while it waits. The heavier window only opens when there's something to show.
+- **Fast.** A 1.6 MB lace pattern with 70,000 curve segments takes about 60 ms.
 
 ## Install
 
-Needs Rust (`brew install rustup && rustup default stable`). Then:
+### Download
 
-```sh
-./scripts/install.sh
-```
+1. Grab `Laser-Check-<version>-macOS.zip` from the [latest release](https://github.com/DuffleOne/laser-svg-check/releases/latest) and open it.
+2. Double-click **Install Laser Check.command**.
+   The app isn't notarised by Apple, so macOS may say it can't check it for malware. If it does, right-click the file, choose **Open**, then **Open** again.
+3. The first time the watcher looks in Downloads, macOS asks for permission. Click **Allow**.
 
-That builds the app into `~/Applications/Laser Check.app` and adds a login agent that runs the watcher. The first time it reads Downloads, macOS asks for permission. Run it again after pulling changes; rebuilding re-signs the app, so macOS may ask again.
+That installs **Laser Check** into `~/Applications` and starts the watcher at login. The build is universal, so it runs natively on Apple silicon and Intel Macs with macOS 13 or later.
 
-`./scripts/install.sh --no-agent` installs just the app.
+If you only want the app and not the background watcher, drag `Laser Check.app` into Applications yourself instead. The first time you open it, right-click and choose **Open**.
 
-To stop the watcher:
+### From source
 
-```sh
-launchctl bootout gui/$(id -u)/one.duffle.laser-check
-```
+See [Building from source](#building-from-source).
+
+## Using it
+
+### When an alert pops up
+
+| Button | What it does |
+| --- | --- |
+| **Fix it** | Writes `name-fixed.svg` next to each file. The alert changes to show where they went. |
+| **Show me** | Opens the review window with the doubled lines in red. |
+| **Fix and show me** | Both. The review window then shows which fixed copies were written. |
+| **Ignore** | Closes the alert. You won't hear about this exact file again for 3 days. |
+
+### The review window
+
+Open **Laser Check** from Applications (or Spotlight) to get the review window. Then:
+
+- drop SVGs or folders anywhere in the window,
+- click **Add files…** (or press <kbd>⌘</kbd><kbd>O</kbd>), or
+- drop files onto the app icon in the Dock, or choose **Open With → Laser Check** in Finder.
+
+Folders are searched for SVGs, including folders inside them. Pick a file on the left to see it. **Whole sheet** shows everything, and ◀ ▶ zoom to each cluster of doubled lines with an orange box around it. **Fix it** fixes the file you're looking at; **Fix all** does every file with problems. **Show in Finder** reveals the fixed copy once there is one.
 
 ## How it decides
 
-Every path, polygon, rect, circle and line is flattened (with transforms applied) and compared against everything nearby. Two lines count as doubled where they run alongside each other within `tolerance_mm` for at least `min_overlap_mm`, measured along the whole path. Crossings, touching curves and sharp tips don't count.
+<p align="center">
+  <img src="docs/images/how-it-works.svg" alt="Diagram: shapes sharing an edge are flagged and the second copy of the edge is removed. Crossing and touching lines are fine; lines on top of each other are not." width="900">
+</p>
 
-The fix keeps the first copy in document order and cuts the later ones out of their paths, joining what's left back up. Untouched elements, layers, colours and ids stay byte for byte. It writes `name-fixed.svg` next to the original and never edits the original.
+Every path, polygon, polyline, line, rect, circle and ellipse is read with its transforms applied and flattened into short straight pieces. Nearby pieces are compared, and two lines count as doubled where they run in the same direction (either way round), within **0.05 mm** of each other, for at least **2 mm** measured along the path.
 
-## Repeat warnings
+That means lines that cross, curves that only touch for a moment, and the two sides of a sharp point are all fine. Shared edges, duplicated layers, stray fragments drawn twice, and paths that double back on themselves are caught.
 
-Files are remembered by content hash in `~/Library/Application Support/laser-check/seen.json`. Clean files are never checked again. A file it already warned about is skipped until `rewarn_days` have passed, then it warns again. Fixed copies are marked clean as they're written, so the watcher doesn't trip over its own output.
+The fix goes through the file in drawing order and keeps whichever copy comes first. Later copies have just the doubled stretch cut out, so a path that is only partly on top of another keeps the rest of its length. If nothing is left of an element, it's removed.
 
-## Config
+There's more detail, including the edge cases, in [docs/how-it-works.md](docs/how-it-works.md).
 
-`~/.config/laser-check/config.toml`, created on first run:
+## Settings
+
+Settings live in `~/.config/laser-check/config.toml`, which is created with the defaults the first time Laser Check runs.
 
 ```toml
-watch_dirs = ["~/Downloads"]
-rewarn_days = 3.0
-tolerance_mm = 0.05
-min_overlap_mm = 2.0
-alert_sound = "Sosumi"   # any name from /System/Library/Sounds, or "" for none
+watch_dirs = ["~/Downloads"]   # folders to watch (not their subfolders)
+rewarn_days = 3.0              # stay quiet about a file you've been warned about for this long
+tolerance_mm = 0.05            # lines closer than this count as on top of each other
+min_overlap_mm = 2.0           # ignore doubled stretches shorter than this
+alert_sound = "Sosumi"         # any name from /System/Library/Sounds, or "" for silence
 ```
 
-Thresholds are re-read on every check. Changing `watch_dirs` needs a restart of the watcher (`launchctl kickstart -k gui/$(id -u)/one.duffle.laser-check`).
-
-## From a terminal
+Thresholds and the sound are read again for every check. After changing `watch_dirs`, restart the watcher:
 
 ```sh
-laser-check check <files or folders>   # report
-laser-check fix <files or folders>     # write -fixed copies
-laser-check verify a.svg a-fixed.svg   # confirm the fix didn't lose any line
+launchctl kickstart -k gui/$(id -u)/one.duffle.laser-check
 ```
 
-The binary lives at `~/Applications/Laser Check.app/Contents/MacOS/laser-check`.
+## Command line
+
+The app's binary works on its own too. It's at `~/Applications/Laser Check.app/Contents/MacOS/laser-check`; add an alias if you use it a lot.
+
+```sh
+laser-check check ~/Desktop/designs          # list files with doubled lines (exits 1 if any)
+laser-check fix part.svg other.svg           # write part-fixed.svg and other-fixed.svg
+laser-check verify part.svg part-fixed.svg   # confirm the fix kept every line
+laser-check preview part.svg part.png        # render the red highlights to a PNG
+laser-check preview part.svg zoom.png --area 2 --light
+laser-check help
+```
+
+## Troubleshooting
+
+**Nothing happens when I AirDrop an SVG.** Check the watcher is running and has access to Downloads:
+
+```sh
+launchctl print gui/$(id -u)/one.duffle.laser-check | grep state
+tail ~/Library/Logs/laser-check.log
+```
+
+If the log says it can't read the folder, open **System Settings → Privacy & Security → Files and Folders** and turn on **Downloads** for `laser-check`. If you've already been warned about that exact file in the last 3 days, it's skipped on purpose.
+
+**"Laser Check can't be opened because Apple cannot check it for malicious software."** The app is ad-hoc signed rather than notarised. Right-click it, choose **Open**, then **Open** again. You only need to do this once.
+
+**macOS asks about Downloads again after an update.** macOS ties that permission to the exact build, so a new version asks once more.
+
+**A file is flagged but I can't see anything wrong.** Click **Show me** and step through the areas. Doubled lines are often tiny fragments a few millimetres long, sitting on top of each other in an otherwise empty part of the sheet.
+
+**I want it stricter or looser.** Lower `min_overlap_mm` to catch shorter doubled stretches, or raise `tolerance_mm` if your copies are offset slightly rather than exactly on top of each other.
+
+## Uninstall
+
+Run the installer with `--uninstall`, from the release folder or a clone of this repo:
+
+```sh
+./"Install Laser Check.command" --uninstall    # from the release zip
+scripts/install-app.sh --uninstall             # from the repo
+```
+
+That stops the watcher and removes the app. Your settings (`~/.config/laser-check`) and file history (`~/Library/Application Support/laser-check`) are left in place; delete them too if you want a clean slate.
+
+## Building from source
+
+You need Rust 1.88 or later and the Xcode command line tools. You don't need the full Xcode or its Metal toolchain.
+
+```sh
+brew install rustup && rustup default stable
+git clone https://github.com/DuffleOne/laser-svg-check.git
+cd laser-svg-check
+scripts/install.sh               # build, install to ~/Applications, start the watcher
+scripts/install.sh --no-agent    # same, without the watcher
+```
+
+`scripts/bundle.sh --universal` builds the same universal app the releases ship, into `dist/`.
+
+## More docs
+
+- [How it works](docs/how-it-works.md): the detection and fixing algorithm in detail.
+- [Development](docs/development.md): project layout, running it locally, tests, and gpui notes.
+- [Releasing](docs/releasing.md): cutting a new version.
+- [Changelog](CHANGELOG.md)
+
+## Licence
+
+[MIT](LICENSE). The UI is built with [gpui](https://gpui.rs), the framework behind the Zed editor.

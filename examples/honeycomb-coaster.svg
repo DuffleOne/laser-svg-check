@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="120mm" height="120mm" viewBox="0 0 340.16 340.16">
+  <circle cx="170.08" cy="170.08" r="141.73" fill="none" stroke="#000" stroke-miterlimit="10"/>
+  <g id="honeycomb">
+    <polygon points="157.31,74.27 157.31,89.01 144.55,96.38 131.78,89.01 131.78,74.27 144.55,66.9" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="182.84,74.27 182.84,89.01 170.08,96.38 157.31,89.01 157.31,74.27 170.08,66.9" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="208.37,74.27 208.37,89.01 195.61,96.38 182.84,89.01 182.84,74.27 195.61,66.9" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="119.02,96.38 119.02,111.12 106.25,118.49 93.49,111.12 93.49,96.38 106.25,89.01" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="144.55,96.38 144.55,111.12 131.78,118.49 119.02,111.12 119.02,96.38 131.78,89.01" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="170.08,96.38 170.08,111.12 157.31,118.49 144.55,111.12 144.55,96.38 157.31,89.01" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="195.61,96.38 195.61,111.12 182.84,118.49 170.08,111.12 170.08,96.38 182.84,89.01" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="221.14,96.38 221.14,111.12 208.37,118.49 195.61,111.12 195.61,96.38 208.37,89.01" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="246.67,96.38 246.67,111.12 233.91,118.49 221.14,111.12 221.14,96.38 233.91,89.01" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="106.25,118.49 106.25,133.23 93.49,140.6 80.72,133.23 80.72,118.49 93.49,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="131.78,118.49 131.78,133.23 119.02,140.6 106.25,133.23 106.25,118.49 119.02,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="157.31,118.49 157.31,133.23 144.55,140.6 131.78,133.23 131.78,118.49 144.55,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="182.84,118.49 182.84,133.23 170.08,140.6 157.31,133.23 157.31,118.49 170.08,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="208.37,118.49 208.37,133.23 195.61,140.6 182.84,133.23 182.84,118.49 195.61,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="233.91,118.49 233.91,133.23 221.14,140.6 208.37,133.23 208.37,118.49 221.14,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="259.44,118.49 259.44,133.23 246.67,140.6 233.91,133.23 233.91,118.49 246.67,111.12" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="93.49,140.6 93.49,155.34 80.72,162.71 67.96,155.34 67.96,140.6 80.72,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="119.02,140.6 119.02,155.34 106.25,162.71 93.49,155.34 93.49,140.6 106.25,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="144.55,140.6 144.55,155.34 131.78,162.71 119.02,155.34 119.02,140.6 131.78,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="170.08,140.6 170.08,155.34 157.31,162.71 144.55,155.34 144.55,140.6 157.31,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="195.61,140.6 195.61,155.34 182.84,162.71 170.08,155.34 170.08,140.6 182.84,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="221.14,140.6 221.14,155.34 208.37,162.71 195.61,155.34 195.61,140.6 208.37,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="246.67,140.6 246.67,155.34 233.91,162.71 221.14,155.34 221.14,140.6 233.91,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="272.2,140.6 272.2,155.34 259.44,162.71 246.67,155.34 246.67,140.6 259.44,133.23" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="106.25,162.71 106.25,177.45 93.49,184.82 80.72,177.45 80.72,162.71 93.49,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="131.78,162.71 131.78,177.45 119.02,184.82 106.25,177.45 106.25,162.71 119.02,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="157.31,162.71 157.31,177.45 144.55,184.82 131.78,177.45 131.78,162.71 144.55,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="182.84,162.71 182.84,177.45 170.08,184.82 157.31,177.45 157.31,162.71 170.08,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="208.37,162.71 208.37,177.45 195.61,184.82 182.84,177.45 182.84,162.71 195.61,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="233.91,162.71 233.91,177.45 221.14,184.82 208.37,177.45 208.37,162.71 221.14,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="259.44,162.71 259.44,177.45 246.67,184.82 233.91,177.45 233.91,162.71 246.67,155.34" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="93.49,184.82 93.49,199.56 80.72,206.93 67.96,199.56 67.96,184.82 80.72,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="119.02,184.82 119.02,199.56 106.25,206.93 93.49,199.56 93.49,184.82 106.25,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="144.55,184.82 144.55,199.56 131.78,206.93 119.02,199.56 119.02,184.82 131.78,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="170.08,184.82 170.08,199.56 157.31,206.93 144.55,199.56 144.55,184.82 157.31,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="195.61,184.82 195.61,199.56 182.84,206.93 170.08,199.56 170.08,184.82 182.84,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="221.14,184.82 221.14,199.56 208.37,206.93 195.61,199.56 195.61,184.82 208.37,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="246.67,184.82 246.67,199.56 233.91,206.93 221.14,199.56 221.14,184.82 233.91,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="272.2,184.82 272.2,199.56 259.44,206.93 246.67,199.56 246.67,184.82 259.44,177.45" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="106.25,206.93 106.25,221.67 93.49,229.04 80.72,221.67 80.72,206.93 93.49,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="131.78,206.93 131.78,221.67 119.02,229.04 106.25,221.67 106.25,206.93 119.02,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="157.31,206.93 157.31,221.67 144.55,229.04 131.78,221.67 131.78,206.93 144.55,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="182.84,206.93 182.84,221.67 170.08,229.04 157.31,221.67 157.31,206.93 170.08,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="208.37,206.93 208.37,221.67 195.61,229.04 182.84,221.67 182.84,206.93 195.61,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="233.91,206.93 233.91,221.67 221.14,229.04 208.37,221.67 208.37,206.93 221.14,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="259.44,206.93 259.44,221.67 246.67,229.04 233.91,221.67 233.91,206.93 246.67,199.56" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="119.02,229.04 119.02,243.78 106.25,251.15 93.49,243.78 93.49,229.04 106.25,221.67" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="144.55,229.04 144.55,243.78 131.78,251.15 119.02,243.78 119.02,229.04 131.78,221.67" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="170.08,229.04 170.08,243.78 157.31,251.15 144.55,243.78 144.55,229.04 157.31,221.67" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="195.61,229.04 195.61,243.78 182.84,251.15 170.08,243.78 170.08,229.04 182.84,221.67" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="221.14,229.04 221.14,243.78 208.37,251.15 195.61,243.78 195.61,229.04 208.37,221.67" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="246.67,229.04 246.67,243.78 233.91,251.15 221.14,243.78 221.14,229.04 233.91,221.67" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="157.31,251.15 157.31,265.89 144.55,273.26 131.78,265.89 131.78,251.15 144.55,243.78" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="182.84,251.15 182.84,265.89 170.08,273.26 157.31,265.89 157.31,251.15 170.08,243.78" fill="none" stroke="#000" stroke-miterlimit="10"/>
+    <polygon points="208.37,251.15 208.37,265.89 195.61,273.26 182.84,265.89 182.84,251.15 195.61,243.78" fill="none" stroke="#000" stroke-miterlimit="10"/>
+  </g>
+</svg>

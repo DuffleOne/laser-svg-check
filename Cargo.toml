@@ -2,6 +2,11 @@
 name = "laser-check"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
+description = "Finds and fixes lines in SVGs that a laser cutter would cut more than once"
+repository = "https://github.com/DuffleOne/laser-svg-check"
+license = "MIT"
+publish = false
 
 [dependencies]
 anyhow = "1.0.104"

@@ -61,7 +61,10 @@ impl Config {
     }
 
     pub fn settings(&self) -> Settings {
-        Settings { tolerance_mm: self.tolerance_mm, min_overlap_mm: self.min_overlap_mm }
+        Settings {
+            tolerance_mm: self.tolerance_mm,
+            min_overlap_mm: self.min_overlap_mm,
+        }
     }
 
     pub fn dirs(&self) -> Vec<PathBuf> {
@@ -70,7 +73,9 @@ impl Config {
 }
 
 pub fn home() -> PathBuf {
-    std::env::var_os("HOME").map(PathBuf::from).unwrap_or_else(|| "/".into())
+    std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| "/".into())
 }
 
 pub fn expand(p: &str) -> PathBuf {

@@ -65,7 +65,11 @@ impl Flat {
     fn point_at(&self, a: f64) -> Point {
         let i = self.arc.partition_point(|&x| x < a).clamp(1, self.arc.len() - 1);
         let (a0, a1) = (self.arc[i - 1], self.arc[i]);
-        let f = if a1 > a0 { ((a - a0) / (a1 - a0)).clamp(0.0, 1.0) } else { 0.0 };
+        let f = if a1 > a0 {
+            ((a - a0) / (a1 - a0)).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         self.pts[i - 1].lerp(self.pts[i], f)
     }
 }
@@ -80,7 +84,11 @@ pub struct Patch {
 pub fn run(doc: Doc, s: &Settings) -> Analysis {
     let tol = s.tolerance_mm / doc.mm_per_unit;
     let cell = (2.0 / doc.mm_per_unit).max(tol * 4.0);
-    let flat: Vec<Flat> = doc.segs.iter().map(|sg| flatten(sg.seg, tol / 4.0, cell)).collect();
+    let flat: Vec<Flat> = doc
+        .segs
+        .iter()
+        .map(|sg| flatten(sg.seg, tol / 4.0, cell))
+        .collect();
 
     // Spatial hash of polyline pieces.
     struct Piece {
@@ -92,7 +100,11 @@ pub fn run(doc: Doc, s: &Settings) -> Analysis {
     for (si, f) in flat.iter().enumerate() {
         for i in 0..f.pts.len() - 1 {
             let bb = Rect::from_points(f.pts[i], f.pts[i + 1]).inflate(tol, tol);
-            pieces.push(Piece { seg: si as u32, i: i as u32, bb });
+            pieces.push(Piece {
+                seg: si as u32,
+                i: i as u32,
+                bb,
+            });
         }
     }
     let key = |p: Point| ((p.x / cell).floor() as i32, (p.y / cell).floor() as i32);
@@ -148,8 +160,10 @@ pub fn run(doc: Doc, s: &Settings) -> Analysis {
     // Measure doubled stretches along whole subpaths, not per segment: a long
     // doubled run is often many short segments, while sharp spike tips and
     // tangent touches only stay within tolerance for a fraction of a mm.
-    let merged: Vec<Vec<(f64, f64)>> =
-        covers.iter().map(|c| merge(c.iter().map(|c| (c.0, c.1)).collect(), tol)).collect();
+    let merged: Vec<Vec<(f64, f64)>> = covers
+        .iter()
+        .map(|c| merge(c.iter().map(|c| (c.0, c.1)).collect(), tol))
+        .collect();
     let mut significant: Vec<Vec<(f64, f64)>> = vec![vec![]; flat.len()];
     for sp in doc.elements.iter().flat_map(|e| &e.subpaths) {
         let mut off = 0.0;
@@ -168,9 +182,17 @@ pub fn run(doc: Doc, s: &Settings) -> Analysis {
         let n = runs.len();
         // On a closed loop the first and last runs may be one run across the start.
         let wraps = sp.closed && n > 1 && runs[0].0 <= tol && runs[n - 1].1 >= total - tol;
-        let wrap_len = if wraps { (runs[0].1 - runs[0].0) + (runs[n - 1].1 - runs[n - 1].0) } else { 0.0 };
+        let wrap_len = if wraps {
+            (runs[0].1 - runs[0].0) + (runs[n - 1].1 - runs[n - 1].0)
+        } else {
+            0.0
+        };
         for (k, &(a, b)) in runs.iter().enumerate() {
-            let len = if wraps && (k == 0 || k == n - 1) { wrap_len } else { b - a };
+            let len = if wraps && (k == 0 || k == n - 1) {
+                wrap_len
+            } else {
+                b - a
+            };
             if len < min_len {
                 continue;
             }
@@ -218,7 +240,14 @@ pub fn run(doc: Doc, s: &Settings) -> Analysis {
     }
 
     let areas = cluster(&patches, &flat, 1.0 / doc.mm_per_unit);
-    Analysis { removed_mm: removed * doc.mm_per_unit, doc, flat, patches, removals, areas }
+    Analysis {
+        removed_mm: removed * doc.mm_per_unit,
+        doc,
+        flat,
+        patches,
+        removals,
+        areas,
+    }
 }
 
 fn flatten(seg: PathSeg, flat_tol: f64, max_piece: f64) -> Flat {
@@ -226,7 +255,10 @@ fn flatten(seg: PathSeg, flat_tol: f64, max_piece: f64) -> Flat {
         PathSeg::Line(l) => (1.0, (l.p1 - l.p0).hypot()),
         PathSeg::Quad(q) => {
             let dd = (q.p0.to_vec2() - 2.0 * q.p1.to_vec2() + q.p2.to_vec2()).hypot();
-            ((2.0 * dd / (8.0 * flat_tol)).sqrt(), (q.p1 - q.p0).hypot() + (q.p2 - q.p1).hypot())
+            (
+                (2.0 * dd / (8.0 * flat_tol)).sqrt(),
+                (q.p1 - q.p0).hypot() + (q.p2 - q.p1).hypot(),
+            )
         }
         PathSeg::Cubic(c) => {
             let d1 = (c.p0.to_vec2() - 2.0 * c.p1.to_vec2() + c.p2.to_vec2()).hypot();
@@ -238,7 +270,11 @@ fn flatten(seg: PathSeg, flat_tol: f64, max_piece: f64) -> Flat {
         }
     };
     let n = (n_flat.ceil().max((hull / max_piece).ceil()).max(1.0) as usize).min(4096);
-    let mut f = Flat { t: Vec::with_capacity(n + 1), pts: Vec::with_capacity(n + 1), arc: Vec::with_capacity(n + 1) };
+    let mut f = Flat {
+        t: Vec::with_capacity(n + 1),
+        pts: Vec::with_capacity(n + 1),
+        arc: Vec::with_capacity(n + 1),
+    };
     let mut acc = 0.0;
     for i in 0..=n {
         let t = i as f64 / n as f64;
@@ -349,7 +385,10 @@ fn cluster(patches: &[Patch], flat: &[Flat], pad: f64) -> Vec<Rect> {
     let mut out: Vec<Rect> = groups.into_values().map(|b| b.inflate(-pad, -pad)).collect();
     // Reading order: rows of roughly 50 units, then left to right.
     out.sort_by(|a, b| {
-        (a.y0 / 50.0).floor().total_cmp(&(b.y0 / 50.0).floor()).then(a.x0.total_cmp(&b.x0))
+        (a.y0 / 50.0)
+            .floor()
+            .total_cmp(&(b.y0 / 50.0).floor())
+            .then(a.x0.total_cmp(&b.x0))
     });
     out
 }

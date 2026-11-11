@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#7d8398"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="760" rx="24" fill="#14161f"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+
+    <!-- Row 1: what happens -->
+    <text x="48" y="64" fill="#f2f3f7" font-size="26" font-weight="700">What goes wrong, and what the fix does</text>
+
+    <!-- panel 1 -->
+    <rect x="48" y="96" width="336" height="280" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <text x="72" y="134" fill="#c9cdda" font-size="19" font-weight="600">1. Exported from Illustrator</text>
+    <g fill="none" stroke-width="4" stroke-linejoin="round">
+      <rect x="110" y="170" width="105" height="140" stroke="#9aa1b5"/>
+      <rect x="215" y="170" width="105" height="140" stroke="#9aa1b5"/>
+    </g>
+    <text x="72" y="352" fill="#8a90a3" font-size="16">Two shapes share an edge. Each</text>
+    <text x="72" y="372" fill="#8a90a3" font-size="16">draws it, so it's in the file twice.</text>
+
+    <!-- arrow -->
+    <line x1="392" y1="236" x2="424" y2="236" stroke="#7d8398" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <!-- panel 2 -->
+    <rect x="432" y="96" width="336" height="280" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <text x="456" y="134" fill="#c9cdda" font-size="19" font-weight="600">2. Laser Check spots it</text>
+    <g fill="none" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <rect x="494" y="170" width="105" height="140" stroke="#9aa1b5"/>
+      <rect x="599" y="170" width="105" height="140" stroke="#9aa1b5"/>
+      <line x1="599" y1="170" x2="599" y2="310" stroke="#ff453a" stroke-opacity="0.25" stroke-width="18"/>
+      <line x1="599" y1="170" x2="599" y2="310" stroke="#ff453a" stroke-width="6"/>
+    </g>
+    <text x="612" y="246" fill="#ff6b61" font-size="16" font-weight="600">×2</text>
+    <text x="456" y="352" fill="#8a90a3" font-size="16">Lines running along each other</text>
+    <text x="456" y="372" fill="#8a90a3" font-size="16">are shown in red.</text>
+
+    <line x1="776" y1="236" x2="808" y2="236" stroke="#7d8398" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <!-- panel 3 -->
+    <rect x="816" y="96" width="336" height="280" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <text x="840" y="134" fill="#c9cdda" font-size="19" font-weight="600">3. Fixed copy</text>
+    <g fill="none" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <rect x="878" y="170" width="105" height="140" stroke="#9aa1b5"/>
+      <polyline points="983,170 1088,170 1088,310 983,310" stroke="#9aa1b5"/>
+      <line x1="983" y1="170" x2="983" y2="310" stroke="#32d74b" stroke-width="6"/>
+    </g>
+    <text x="996" y="246" fill="#5fe07a" font-size="16" font-weight="600">×1</text>
+    <text x="840" y="352" fill="#8a90a3" font-size="16">The first copy stays, the second is</text>
+    <text x="840" y="372" fill="#8a90a3" font-size="16">trimmed. Saved as name-fixed.svg.</text>
+
+    <!-- Row 2: what counts -->
+    <text x="48" y="448" fill="#f2f3f7" font-size="26" font-weight="700">What counts as a double line</text>
+
+    <rect x="48" y="480" width="258" height="232" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <g fill="none" stroke="#9aa1b5" stroke-width="4" stroke-linecap="round">
+      <line x1="100" y1="530" x2="254" y2="640"/>
+      <line x1="100" y1="640" x2="254" y2="530"/>
+    </g>
+    <circle cx="276" cy="508" r="14" fill="#32d74b"/>
+    <path d="M269,508 l5,5 l9,-10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="72" y="680" fill="#c9cdda" font-size="18" font-weight="600">Crossing</text>
+    <text x="72" y="700" fill="#8a90a3" font-size="15">Fine, they only meet at a point.</text>
+
+    <rect x="330" y="480" width="258" height="232" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <g fill="none" stroke="#9aa1b5" stroke-width="4">
+      <circle cx="414" cy="585" r="48"/>
+      <circle cx="510" cy="585" r="48"/>
+    </g>
+    <circle cx="558" cy="508" r="14" fill="#32d74b"/>
+    <path d="M551,508 l5,5 l9,-10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="354" y="680" fill="#c9cdda" font-size="18" font-weight="600">Touching</text>
+    <text x="354" y="700" fill="#8a90a3" font-size="15">Fine, curves that kiss briefly.</text>
+
+    <rect x="612" y="480" width="258" height="232" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <g fill="none" stroke-width="4" stroke-linecap="round">
+      <path d="M660,620 C700,540 780,540 822,620" stroke="#9aa1b5"/>
+      <path d="M660,620 C700,540 780,540 822,620" stroke="#ff453a" stroke-opacity="0.3" stroke-width="16"/>
+      <path d="M660,620 C700,540 780,540 822,620" stroke="#ff453a" stroke-width="5"/>
+    </g>
+    <circle cx="840" cy="508" r="14" fill="#ff453a"/>
+    <path d="M834,502 l12,12 M846,502 l-12,12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <text x="636" y="680" fill="#c9cdda" font-size="18" font-weight="600">On top of each other</text>
+    <text x="636" y="700" fill="#8a90a3" font-size="15">Two copies of the same line.</text>
+
+    <rect x="894" y="480" width="258" height="232" rx="16" fill="#1d2030" stroke="#2c3145"/>
+    <g fill="none" stroke-width="4" stroke-linecap="round">
+      <line x1="940" y1="560" x2="1106" y2="560" stroke="#9aa1b5"/>
+      <line x1="980" y1="563" x2="1070" y2="563" stroke="#ff453a" stroke-width="5"/>
+      <line x1="980" y1="563" x2="1070" y2="563" stroke="#ff453a" stroke-opacity="0.3" stroke-width="16"/>
+    </g>
+    <text x="1023" y="604" fill="#8a90a3" font-size="14" text-anchor="middle">within 0.05 mm, over 2 mm</text>
+    <circle cx="1122" cy="508" r="14" fill="#ff453a"/>
+    <path d="M1116,502 l12,12 M1128,502 l-12,12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <text x="918" y="680" fill="#c9cdda" font-size="18" font-weight="600">Partly overlapping</text>
+    <text x="918" y="700" fill="#8a90a3" font-size="15">Only the shared stretch is cut out.</text>
+  </g>
+</svg>
