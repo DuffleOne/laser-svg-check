@@ -93,7 +93,7 @@ jobs:
           ' CHANGELOG.md > notes.md
           cat .github/release-footer.md >> notes.md
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           name: Laser Check ${{ steps.package.outputs.version }}
           body_path: notes.md
