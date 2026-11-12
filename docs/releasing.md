@@ -16,12 +16,12 @@ The workflow then:
 - runs the tests,
 - checks the tag matches `Cargo.toml`,
 - builds for Apple silicon and Intel and joins them into one universal binary,
-- zips `Laser Check.app` and `Install Laser Check.command` (a copy of `scripts/install-app.sh`) into `Laser-Check-<version>-macOS.zip` with `scripts/package.sh`, plus a SHA-256 checksum,
+- signs and notarises the app, puts it in `Laser-Check-<version>.dmg` beside a link to Applications, then signs and notarises the image too (`scripts/package.sh`), plus a SHA-256 checksum,
 - publishes a GitHub release with the changelog section and install steps from `.github/release-footer.md`.
 
 If a release build fails, fix it, delete the tag (`git push origin :v0.2.0`) and tag again.
 
-To build the same zip locally (it lands in `dist/`):
+To build the same image locally (it lands in `dist/`):
 
 ```sh
 scripts/package.sh
@@ -43,6 +43,8 @@ Releases are signed with a Developer ID certificate and notarised by Apple when 
 
 With the secrets in place, the workflow imports the certificate into a throwaway keychain, `bundle.sh` signs with the hardened runtime, `package.sh` sends the app to Apple's notary service and staples the ticket, and the build checks Gatekeeper accepts it before publishing. The keychain and key are deleted at the end of the job.
 
-Without them, the release is signed ad hoc as before, and people have to right-click → **Open** the first time.
+Without them, the release is signed ad hoc and macOS won't open it without a trip to Privacy & Security.
+
+There's no installer script in the image because Apple only notarises signed code, and a shell script can't carry a ticket. Opening the app sets up the login agent instead (`src/agent.rs`).
 
 To sign a local build the same way: `SIGN_IDENTITY="Developer ID Application" scripts/package.sh`. Add `NOTARY_KEY_PATH`, `NOTARY_KEY_ID` and `NOTARY_ISSUER` to notarise it too.

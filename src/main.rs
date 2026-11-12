@@ -1,3 +1,4 @@
+mod agent;
 mod analyze;
 mod config;
 mod fix;
@@ -25,6 +26,7 @@ usage:
   laser-check preview <in.svg> <out.png> [--area N] [--light]
                                            render the highlights to a PNG
   laser-check watch                        watch folders (what the login agent runs)
+  laser-check uninstall                    stop the watcher and remove its login agent
 ";
 
 fn main() -> Result<()> {
@@ -90,11 +92,19 @@ fn main() -> Result<()> {
             ui::run(ui::Start::Alert(paths(1)));
             Ok(())
         }
+        // Used by scripts/install-app.sh.
+        Some("install-agent") => Ok(agent::install(&std::env::current_exe()?)?),
+        Some("uninstall") => {
+            agent::uninstall()?;
+            println!("watcher stopped and removed; drag Laser Check to the Bin to finish");
+            Ok(())
+        }
         Some("help" | "-h" | "--help") => {
             print!("{USAGE}\nconfig: {}\n", Config::path().display());
             Ok(())
         }
         _ => {
+            agent::sync(&cfg);
             // Finder may pass a -psn_ argument on old systems; ignore anything that isn't a path.
             ui::run(ui::Start::Review(
                 args.iter()

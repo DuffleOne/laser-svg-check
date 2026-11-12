@@ -45,10 +45,12 @@ src/
   watch.rs     FSEvents watcher, and the short-lived `scan` process
   store.rs     content-hash history (seen.json)
   config.rs    config.toml
+  agent.rs     the login agent opening the app installs
 scripts/
   bundle.sh       build dist/Laser Check.app (--universal for releases)
   install.sh      bundle, then install-app.sh
-  install-app.sh  install a built app + login agent; ships in the release zip
+  install-app.sh  install a built app + login agent
+  package.sh      the release disk image, signed and notarised when set up
   Info.plist      app bundle template
   make-icon.swift renders assets/icon.svg into assets/AppIcon.icns
 assets/        app icon, Lucide icons (icons/) and JetBrains Mono (fonts/)

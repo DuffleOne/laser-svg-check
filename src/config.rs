@@ -15,6 +15,8 @@ pub struct Config {
     pub min_overlap_mm: f64,
     /// macOS system sound played with the alert, or "" for none.
     pub alert_sound: String,
+    /// Run the watcher at login. Opening the app sets this up (or removes it).
+    pub start_at_login: bool,
 }
 
 impl Default for Config {
@@ -25,6 +27,7 @@ impl Default for Config {
             tolerance_mm: 0.05,
             min_overlap_mm: 2.0,
             alert_sound: "Sosumi".into(),
+            start_at_login: true,
         }
     }
 }

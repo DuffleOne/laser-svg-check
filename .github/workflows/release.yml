@@ -63,8 +63,8 @@ jobs:
       - name: Build and package
         id: package
         run: |
-          zip=$(scripts/package.sh)
-          echo "zip=$zip" >> "$GITHUB_OUTPUT"
+          dmg=$(scripts/package.sh)
+          echo "dmg=$dmg" >> "$GITHUB_OUTPUT"
           echo "version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)" >> "$GITHUB_OUTPUT"
 
       - name: Check the signature
@@ -72,7 +72,9 @@ jobs:
           codesign --verify --strict --verbose=2 "dist/Laser Check.app"
           if [[ -n "${NOTARY_KEY_PATH:-}" ]]; then
             spctl --assess --type execute --verbose=2 "dist/Laser Check.app"
+            spctl --assess --type open --context context:primary-signature --verbose=2 "${{ steps.package.outputs.dmg }}"
             xcrun stapler validate "dist/Laser Check.app"
+            xcrun stapler validate "${{ steps.package.outputs.dmg }}"
           fi
 
       - name: Clean up signing material
@@ -96,5 +98,5 @@ jobs:
           name: Laser Check ${{ steps.package.outputs.version }}
           body_path: notes.md
           files: |
-            ${{ steps.package.outputs.zip }}
-            ${{ steps.package.outputs.zip }}.sha256
+            ${{ steps.package.outputs.dmg }}
+            ${{ steps.package.outputs.dmg }}.sha256

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 - 2026-11-12
+
+- Signed with a Developer ID and notarised by Apple, so macOS opens it without warnings.
+- Ships as a disk image: drag the app into Applications and open it. Opening the app starts the watcher at login, so there's no installer script any more. Set `start_at_login = false` to opt out.
+- `laser-check uninstall` stops the watcher and removes its login agent.
+
 ## 0.1.0 - 2026-11-11
 
 First release.

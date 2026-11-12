@@ -58,14 +58,14 @@ Laser Check sits quietly in the background, looks at every SVG that lands in you
 
 ### Download
 
-1. Grab `Laser-Check-<version>-macOS.zip` from the [latest release](https://github.com/DuffleOne/laser-svg-check/releases/latest) and open it.
-2. Double-click **Install Laser Check.command**.
-   The app isn't notarised by Apple, so macOS may say it can't check it for malware. If it does, right-click the file, choose **Open**, then **Open** again.
-3. The first time the watcher looks in Downloads, macOS asks for permission. Click **Allow**.
+1. Download `Laser-Check-<version>.dmg` from the [latest release](https://github.com/DuffleOne/laser-svg-check/releases/latest) and open it.
+2. Drag **Laser Check** into **Applications**.
+3. Open Laser Check from Applications. That starts the watcher, now and at every login.
+4. The first time the watcher looks in Downloads, macOS asks for permission. Click **Allow**.
 
-That installs **Laser Check** into `~/Applications` and starts the watcher at login. The build is universal, so it runs natively on Apple silicon and Intel Macs with macOS 13 or later.
+The app is signed and notarised by Apple. The build is universal, so it runs natively on Apple silicon and Intel Macs with macOS 13 or later.
 
-If you only want the app and not the background watcher, drag `Laser Check.app` into Applications yourself instead. The first time you open it, right-click and choose **Open**.
+If you only want the app and not the background watcher, set `start_at_login = false` in the [settings](#settings).
 
 ### From source
 
@@ -124,6 +124,7 @@ rewarn_days = 3.0              # stay quiet about a file you've been warned abou
 tolerance_mm = 0.05            # lines closer than this count as on top of each other
 min_overlap_mm = 2.0           # ignore doubled stretches shorter than this
 alert_sound = "Sosumi"         # any name from /System/Library/Sounds, or "" for silence
+start_at_login = true          # run the watcher at login; opening the app applies this
 ```
 
 Thresholds and the sound are read again for every check. After changing `watch_dirs`, restart the watcher:
@@ -134,7 +135,7 @@ launchctl kickstart -k gui/$(id -u)/one.duffle.laser-check
 
 ## Command line
 
-The app's binary works on its own too. It's at `~/Applications/Laser Check.app/Contents/MacOS/laser-check`; add an alias if you use it a lot.
+The app's binary works on its own too. It's at `/Applications/Laser Check.app/Contents/MacOS/laser-check`; add an alias if you use it a lot.
 
 ```sh
 laser-check check ~/Desktop/designs          # list files with doubled lines (exits 1 if any)
@@ -142,6 +143,7 @@ laser-check fix part.svg other.svg           # write part-fixed.svg and other-fi
 laser-check verify part.svg part-fixed.svg   # confirm the fix kept every line
 laser-check preview part.svg part.png        # render the red highlights to a PNG
 laser-check preview part.svg zoom.png --area 2 --light
+laser-check uninstall                        # stop the watcher and remove its login agent
 laser-check help
 ```
 
@@ -156,9 +158,7 @@ tail ~/Library/Logs/laser-check.log
 
 If the log says it can't read the folder, open **System Settings → Privacy & Security → Files and Folders** and turn on **Downloads** for `laser-check`. If you've already been warned about that exact file in the last 3 days, it's skipped on purpose.
 
-**"Laser Check can't be opened because Apple cannot check it for malicious software."** The app is ad-hoc signed rather than notarised. Right-click it, choose **Open**, then **Open** again. You only need to do this once.
-
-**macOS asks about Downloads again after an update.** macOS ties that permission to the exact build, so a new version asks once more.
+**macOS asks about Downloads again after an update.** Builds from source are signed ad hoc, which ties the permission to the exact build, so each new one asks once more.
 
 **A file is flagged but I can't see anything wrong.** Open it in the review window and step through the areas with <kbd>↓</kbd>. Doubled lines are often tiny fragments a few millimetres long, sitting on top of each other in an otherwise empty part of the sheet.
 
@@ -166,14 +166,13 @@ If the log says it can't read the folder, open **System Settings → Privacy & S
 
 ## Uninstall
 
-Run the installer with `--uninstall`, from the release folder or a clone of this repo:
+Stop the watcher, then drag Laser Check from Applications to the Bin:
 
 ```sh
-./"Install Laser Check.command" --uninstall    # from the release zip
-scripts/install-app.sh --uninstall             # from the repo
+"/Applications/Laser Check.app/Contents/MacOS/laser-check" uninstall
 ```
 
-That stops the watcher and removes the app. Your settings (`~/.config/laser-check`) and file history (`~/Library/Application Support/laser-check`) are left in place; delete them too if you want a clean slate.
+If you installed from source, `scripts/install.sh --uninstall` does both. Your settings (`~/.config/laser-check`) and file history (`~/Library/Application Support/laser-check`) are left in place; delete them too if you want a clean slate.
 
 ## Building from source
 
@@ -183,11 +182,10 @@ You need Rust 1.88 or later and the Xcode command line tools. You don't need the
 brew install rustup && rustup default stable
 git clone https://github.com/DuffleOne/laser-svg-check.git
 cd laser-svg-check
-scripts/install.sh               # build, install to ~/Applications, start the watcher
-scripts/install.sh --no-agent    # same, without the watcher
+scripts/install.sh    # build, install to ~/Applications, start the watcher
 ```
 
-`scripts/bundle.sh --universal` builds the same universal app the releases ship, into `dist/`.
+`scripts/package.sh` builds the same universal disk image the releases ship, into `dist/`.
 
 ## Contributing
 
